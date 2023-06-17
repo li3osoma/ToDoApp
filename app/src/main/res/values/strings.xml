@@ -17,5 +17,6 @@
     <string name="high_importance_menu_item_text">High</string>
     <string name="low_importance_menu_item_text">Low</string>
     <string name="no_importance_menu_item_text">No</string>
+    <string name="non_existed_task_message">Non-existed task cannot be deleted</string>
 
 </resources>

@@ -89,14 +89,16 @@ class ToDoItemEditFragment : Fragment() {
     private fun setUpDeleteButton(){
 
         if(itemId==""){
-            binding.deleteIcon.isClickable=false
-            binding.deleteTextView.isClickable=false
             binding.deleteIcon.setImageResource(R.drawable.icon_delete_grey)
-            binding.deleteTextView.setTextColor(resources.getColor(R.color.grey))
+            binding.deleteTextView.setTextColor(resources.getColor(R.color.color_light_gray))
+            binding.deleteIcon.setOnClickListener {
+                Toast.makeText(requireContext(), getString(R.string.non_existed_task_message),Toast.LENGTH_SHORT).show()
+            }
+            binding.deleteTextView.setOnClickListener {
+                Toast.makeText(requireContext(), getString(R.string.non_existed_task_message),Toast.LENGTH_SHORT).show()
+            }
         }
         else{
-            binding.deleteIcon.isClickable=true
-            binding.deleteTextView.isClickable=true
             binding.deleteIcon.setImageResource(R.drawable.icon_delete)
             binding.deleteTextView.setTextColor(resources.getColor(R.color.black))
             binding.deleteIcon.setOnClickListener {
