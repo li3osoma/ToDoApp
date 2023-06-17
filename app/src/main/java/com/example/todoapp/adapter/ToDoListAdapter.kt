@@ -124,7 +124,7 @@ class ToDoListAdapter(
         }
         else holder.binding.deadline.visibility=View.INVISIBLE
 
-        holder.binding.text.text= StringUtils.cutString(items[position].text)
+        holder.binding.text.text= items[position].text
 
         holder.itemView.setOnClickListener(this)
 

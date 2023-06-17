@@ -30,6 +30,8 @@
         android:layout_marginStart="5dp"
         android:layout_marginTop="8dp"
         android:text="Task0"
+        android:ellipsize="end"
+        android:maxLines="3"
         android:textColor="@color/black"
         android:textSize="20sp"
         android:visibility="visible"
