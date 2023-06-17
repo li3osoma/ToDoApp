@@ -13,5 +13,9 @@
     <string name="select_date_title">Select date</string>
     <string name="deadline_message">Deadline set</string>
     <string name="done_title_text">Done: </string>
+    <string name="open_menu_item_text">Open</string>
+    <string name="high_importance_menu_item_text">High</string>
+    <string name="low_importance_menu_item_text">Low</string>
+    <string name="no_importance_menu_item_text">No</string>
 
 </resources>

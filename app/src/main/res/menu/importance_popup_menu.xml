@@ -3,12 +3,12 @@
     <item
         android:id="@+id/highImportance"
         android:icon="@drawable/icon_run"
-        android:title="High"/>
+        android:title="@string/high_importance_menu_item_text"/>
     <item
         android:id="@+id/lowImportance"
-        android:title="Low"
+        android:title="@string/low_importance_menu_item_text"
         android:icon="@drawable/icon_slow"/>
     <item
         android:id="@+id/noImportance"
-        android:title="No"/>
+        android:title="@string/no_importance_menu_item_text"/>
 </menu>
