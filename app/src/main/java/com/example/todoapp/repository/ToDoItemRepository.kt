@@ -31,7 +31,7 @@ class ToDoItemRepository {
             ToDoItem("12", "Bye ingredients for salad", "No", "", true, "June 10, 2023", "June 10, 2023"),
 
         )
-        doneNum=3
+        doneNum=6
         return items
     }
 

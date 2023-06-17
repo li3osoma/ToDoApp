@@ -163,10 +163,12 @@ class ToDoListFragment : Fragment(){
                             val item=toDoListViewModel.getItemById(itemId).value!!
                             val position=toDoListViewModel.getPositionById(itemId)
                             toDoListViewModel.deleteItemById(itemId)
+                            setUpCompleteNum()
                             showRestoreItemSnackbar(item,  position)
                         }
                         ItemTouchHelper.RIGHT -> {
                             toDoListViewModel.setTaskComplete(itemId)
+                            setUpCompleteNum()
                         }
                     }
                 }
