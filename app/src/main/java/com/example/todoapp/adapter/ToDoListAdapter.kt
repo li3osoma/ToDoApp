@@ -100,10 +100,16 @@ class ToDoListAdapter(
                 holder.binding.text.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
             holder.binding.text.setTextColor(R.color.grey)
         }
+        else{
+            holder.binding.text.paintFlags =
+                holder.binding.text.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+            holder.binding.text.setTextColor(R.color.black)
+        }
         when (items[position].importance) {
             "Low" -> {
                 holder.binding.imageView.setImageResource(R.drawable.icon_slow)
                 holder.binding.imageView.visibility=View.VISIBLE
+
             }
             "High" -> {
                 holder.binding.imageView.setImageResource(R.drawable.icon_run)
@@ -111,7 +117,12 @@ class ToDoListAdapter(
             }
             else -> holder.binding.imageView.visibility=View.GONE
         }
-        holder.binding.deadline.text=items[position].date_deadline
+
+        if(items[position].date_deadline!="") {
+            holder.binding.deadline.visibility=View.VISIBLE
+            holder.binding.deadline.text=items[position].date_deadline
+        }
+        else holder.binding.deadline.visibility=View.INVISIBLE
 
         holder.binding.text.text= StringUtils.cutString(items[position].text)
 

@@ -81,7 +81,7 @@ class ToDoItemEditFragment : Fragment() {
         }
         else{
             binding.deadlineSwitch.isChecked=false
-            binding.dateTextView.visibility=View.GONE
+            binding.dateTextView.visibility=View.INVISIBLE
             binding.dateTextView.isClickable=false
         }
     }
@@ -156,7 +156,7 @@ class ToDoItemEditFragment : Fragment() {
                 binding.importanceImageView.visibility=View.GONE
                 val params:MarginLayoutParams=binding.importanceEditTextView.layoutParams
                         as MarginLayoutParams
-                params.marginStart=70
+                params.marginStart=40
                 binding.importanceEditTextView.layoutParams=params
             }
         }

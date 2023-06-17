@@ -16,26 +16,20 @@ class ToDoItemRepository {
 
     private fun generateItemList():List<ToDoItem>{
         var items = mutableListOf<ToDoItem>(
-            ToDoItem("1", "Task01", "No", "17.06.2023", false, "14.06.2023", ""),
-            ToDoItem("2", "Task02", "No", "17.06.2023", false, "14.06.2023", "16.06.2023"),
-            ToDoItem("3", "Task03", "No", "17.06.2023", true, "14.06.2023", ""),
-            ToDoItem("4", "Task04", "No", "17.06.2023", false, "14.06.2023", "16.06.2023"),
-            ToDoItem("5", "Task05", "No", "11.06.2023", false, "10.06.2023", ""),
-            ToDoItem("6", "Task06\nUsual task", "No", "11.06.2023", false, "10.06.2023", "10.06.2023"),
+            ToDoItem("1", "Write a todo-app before deadline!!", "High", "June 17, 2023", true, "June 10, 2023", ""),
+            ToDoItem("2", "Write a todo-app before deadline properly", "No", "June 10, 2023", false, "June 14, 2023", "June 16, 2023"),
+            ToDoItem("3", "Plan a visit to the bar", "No", "", false, "June 14, 2023", ""),
+            ToDoItem("4", "Find a kickboxing club", "Low", "", false, "June 14, 2023", "June 16, 2023"),
+            ToDoItem("5", "Go to gym", "Low", "June 17, 2023", true, "June 10, 2023", ""),
+            ToDoItem("6", "Task\nUsual task", "No", "June 11, 2023",true, "June 10, 2023", "June 10, 2023"),
 
-            ToDoItem("7", "Task11", "Low", "17.06.2023", false, "14.06.2023", ""),
-            ToDoItem("8", "Task12", "Low", "17.06.2023", false, "14.06.2023", "16.06.2023"),
-            ToDoItem("9", "Task13\nNeed to complete task\nIt's not so important\nBut have to be done", "Low", "17.06.2023", true, "14.06.2023", ""),
-            ToDoItem("10", "Task14", "Low", "17.06.2023", false, "14.06.2023", "16.06.2023"),
-            ToDoItem("11", "Task15", "Low", "11.06.2023", false, "10.06.2023", ""),
-            ToDoItem("12", "Task16", "Low", "11.06.2023", false, "10.06.2023", "10.06.2023"),
+            ToDoItem("7", "Call mom", "High", "", true, "June 14, 2023", ""),
+            ToDoItem("8", "Choose a present for mom", "High", "June 22, 2023", false, "June 14, 2023", "June 16, 2023"),
+            ToDoItem("9", "Task\nNeed to complete task\nIt's not so important\nBut have to be done", "Low", "June 17, 2023", true, "June 14, 2023", ""),
+            ToDoItem("10", "Prepare for exam", "Low", "", false, "June 14, 2023", "June 16, 2023"),
+            ToDoItem("11", "What is this task?", "High", "", false, "June 10, 2023", ""),
+            ToDoItem("12", "Bye ingredients for salad", "No", "", true, "June 10, 2023", "June 10, 2023"),
 
-            ToDoItem("13", "Task21\nImportant task", "High", "17.06.2023", false, "14.06.2023", ""),
-            ToDoItem("14", "Task22", "High", "17.06.2023", false, "14.06.2023", "16.06.2023"),
-            ToDoItem("15", "Task23", "High", "17.06.2023", true, "14.06.2023", ""),
-            ToDoItem("16", "Task24", "High", "17.06.2023", false, "14.06.2023", "16.06.2023"),
-            ToDoItem("17", "Task25\nNeed to complete task\nIt's very important\nAnd have to be done", "High", "11.06.2023", false, "10.06.2023", ""),
-            ToDoItem("18", "Task26", "High", "11.06.2023", false, "10.06.2023", "10.06.2023")
         )
         doneNum=3
         return items

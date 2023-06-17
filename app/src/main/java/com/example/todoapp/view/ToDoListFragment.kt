@@ -142,7 +142,7 @@ class ToDoListFragment : Fragment(){
     }
 
     private val taskListener:TaskListener={
-        adapter.items=it
+        adapter.items=it.reversed()
     }
 
     private fun setSwipeAction(){
