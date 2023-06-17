@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/highImportance"
+        android:icon="@drawable/icon_run"
+        android:title="High"/>
+    <item
+        android:id="@+id/lowImportance"
+        android:title="Low"
+        android:icon="@drawable/icon_slow"/>
+    <item
+        android:id="@+id/noImportance"
+        android:title="No"/>
+</menu>

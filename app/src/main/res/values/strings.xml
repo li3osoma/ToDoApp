@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">ToDoApp</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="add_button_description">Add Todo-item</string>
+
+    <string name="delete_message">Task is deleted</string>
+    <string name="empty_task_message">Empty task</string>
+    <string name="save_message">Task saved</string>
+    <string name="edit_message">Changes saved</string>
+    <string name="importance_message">importance set</string>
+    <string name="ok_button_text">Ok</string>
+    <string name="cancel_button_text">Cancel</string>
+    <string name="select_date_title">Select date</string>
+    <string name="deadline_message">Deadline set</string>
+    <string name="done_title_text">Done: </string>
+
+</resources>
