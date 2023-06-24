@@ -88,12 +88,6 @@ class ToDoListFragment : Fragment(){
             override fun openActionMenu() {
 
             }
-        },
-        object:VisibilityListener{
-            override fun changeVisibility() {
-                TODO("Not yet implemented")
-            }
-
         })
         val newValue=toDoListViewModel.getToDoList().value!!
         adapter.items=newValue
@@ -145,9 +139,10 @@ class ToDoListFragment : Fragment(){
         adapter.items=it.reversed()
     }
 
-    private fun setSwipeAction(){
+    private fun setSwipeAction() {
         val itemTouchHelper = ItemTouchHelper(
-            object : ItemTouchHelper.SimpleCallback(0,
+            object : ItemTouchHelper.SimpleCallback(
+                0,
                 ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
             ) {
                 override fun onMove(
@@ -156,15 +151,16 @@ class ToDoListFragment : Fragment(){
                 ): Boolean {
                     return false
                 }
+
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                    val itemId=(viewHolder.itemView.tag as ToDoItem).id
-                    when(direction){
+                    val itemId = (viewHolder.itemView.tag as ToDoItem).id
+                    when (direction) {
                         ItemTouchHelper.LEFT -> {
-                            val item=toDoListViewModel.getItemById(itemId).value!!
-                            val position=toDoListViewModel.getPositionById(itemId)
+                            val item = toDoListViewModel.getItemById(itemId).value!!
+                            val position = toDoListViewModel.getPositionById(itemId)
                             toDoListViewModel.deleteItemById(itemId)
                             setUpCompleteNum()
-                            showRestoreItemSnackbar(item,  position)
+                            showRestoreItemSnackbar(item, position)
                         }
                         ItemTouchHelper.RIGHT -> {
                             toDoListViewModel.setTaskComplete(itemId)
@@ -175,9 +171,9 @@ class ToDoListFragment : Fragment(){
 
                 override fun getSwipeThreshold(viewHolder: ViewHolder) = 0.5f
 
-                private fun showRestoreItemSnackbar(item:ToDoItem, position:Int){
+                private fun showRestoreItemSnackbar(item: ToDoItem, position: Int) {
                     Snackbar.make(binding.recyclerView, "Task deleted", Snackbar.LENGTH_LONG)
-                        .setAction("Undo"){
+                        .setAction("Undo") {
                             toDoListViewModel.restoreItem(item, position)
                         }.show()
                 }
@@ -193,9 +189,9 @@ class ToDoListFragment : Fragment(){
                     isCurrentlyActive: Boolean
                 ) {
                     val itemView: View = viewHolder.itemView
-                    var p=Paint().also { it.color = resources.getColor(R.color.red) }
-                    if(dX<0){
-                        p=Paint().also { it.color = resources.getColor(R.color.red) }
+                    var p = Paint().also { it.color = resources.getColor(R.color.red) }
+                    if (dX < 0) {
+                        p = Paint().also { it.color = resources.getColor(R.color.red) }
                         c.drawRect(
                             itemView.right.toFloat() + dX,
                             itemView.top.toFloat(),
@@ -203,7 +199,8 @@ class ToDoListFragment : Fragment(){
                             itemView.bottom.toFloat(),
                             p
                         )
-                        val icon: Bitmap = requireContext().getDrawable(R.drawable.icon_delete_white)!!.toBitmap()
+                        val icon: Bitmap =
+                            requireContext().getDrawable(R.drawable.icon_delete_white)!!.toBitmap()
                         val iconMarginRight = (dX * -0.2f).coerceAtMost(70f).coerceAtLeast(0f)
                         c.drawBitmap(
                             icon,
@@ -213,7 +210,7 @@ class ToDoListFragment : Fragment(){
                         )
 
                     }
-                    if(dX>0){
+                    if (dX > 0) {
                         p = Paint().also { it.color = resources.getColor(R.color.green) }
                         c.drawRect(
                             itemView.left.toFloat() + dX,
@@ -222,7 +219,8 @@ class ToDoListFragment : Fragment(){
                             itemView.bottom.toFloat(),
                             p
                         )
-                        val icon: Bitmap = requireContext().getDrawable(R.drawable.icon_save_white)!!.toBitmap()
+                        val icon: Bitmap =
+                            requireContext().getDrawable(R.drawable.icon_save_white)!!.toBitmap()
 
                         val iconMarginLeft = (dX * 0.2f).coerceAtMost(70f).coerceAtLeast(0f)
                         c.drawBitmap(
@@ -236,10 +234,19 @@ class ToDoListFragment : Fragment(){
                     // Draw background
 
 
-                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                    super.onChildDraw(
+                        c,
+                        recyclerView,
+                        viewHolder,
+                        dX,
+                        dY,
+                        actionState,
+                        isCurrentlyActive
+                    )
                 }
             })
         itemTouchHelper.attachToRecyclerView(binding.recyclerView)
+
     }
 
 }

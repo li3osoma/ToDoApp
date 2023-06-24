@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.todoapp.R
 import com.example.todoapp.model.ToDoItem
 import com.example.todoapp.databinding.ItemTaskBinding
+import com.example.todoapp.model.Importance
 
 interface TaskActionListener{
     fun onTaskDetails(itemId:String)
@@ -20,9 +21,6 @@ interface TaskActionListener{
     fun onCompleteNumberChanged()
     fun onTaskDelete(itemId: String)
     fun openActionMenu()
-}
-interface VisibilityListener{
-    fun changeVisibility()
 }
 
 class ToDoListDiffUtilCallback(
@@ -62,7 +60,6 @@ class ToDoListDiffUtilCallback(
 
 class ToDoListAdapter(
     private val taskActionListener: TaskActionListener,
-    private val visibilityListener: VisibilityListener
 ) : RecyclerView.Adapter<ToDoListAdapter.ToDoListViewHolder>(),
     View.OnClickListener{
 
@@ -106,12 +103,12 @@ class ToDoListAdapter(
             holder.binding.text.setTextColor(R.color.black)
         }
         when (items[position].importance) {
-            "Low" -> {
+            Importance.LOW -> {
                 holder.binding.imageView.setImageResource(R.drawable.icon_slow)
                 holder.binding.imageView.visibility=View.VISIBLE
 
             }
-            "High" -> {
+            Importance.HIGH -> {
                 holder.binding.imageView.setImageResource(R.drawable.icon_run)
                 holder.binding.imageView.visibility=View.VISIBLE
             }

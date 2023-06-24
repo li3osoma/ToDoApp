@@ -14,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.todoapp.R
 import com.example.todoapp.databinding.FragmentToDoItemEditBinding
+import com.example.todoapp.model.Importance
 import com.example.todoapp.utils.DateUtils
 import com.example.todoapp.utils.StringUtils
 import com.example.todoapp.viewmodel.ToDoItemEditViewModel
@@ -70,7 +71,7 @@ class ToDoItemEditFragment : Fragment() {
             val toDoItem=toDoItemLD.value!!
             binding.taskEditText.text= StringUtils.Editable(toDoItem.text)
 
-            setImportance(toDoItem.importance)
+            setImportance(toDoItem.importance.toString())
 
             if(toDoItem.date_deadline!=""){
                 binding.deadlineSwitch.isChecked=true
@@ -133,7 +134,7 @@ class ToDoItemEditFragment : Fragment() {
     private fun setImportance(importance:String){
         binding.importanceEditTextView.text=importance
         when (importance){
-            "Low" -> {
+            Importance.LOW.toString() -> {
                 binding.importanceEditTextView.setTextColor(resources.getColor(R.color.green))
                 val params:MarginLayoutParams=binding.importanceEditTextView.layoutParams
                         as MarginLayoutParams
@@ -143,7 +144,7 @@ class ToDoItemEditFragment : Fragment() {
                 binding.importanceImageView.setImageResource(R.drawable.icon_slow)
                 binding.importanceImageView.visibility=View.VISIBLE
             }
-            "High" -> {
+            Importance.HIGH.toString() -> {
                 binding.importanceEditTextView.setTextColor(resources.getColor(R.color.red))
                 val params:MarginLayoutParams=binding.importanceEditTextView.layoutParams
                         as MarginLayoutParams
@@ -153,7 +154,7 @@ class ToDoItemEditFragment : Fragment() {
                 binding.importanceImageView.setImageResource(R.drawable.icon_run)
                 binding.importanceImageView.visibility=View.VISIBLE
             }
-            "No" -> {
+            Importance.NO.toString() -> {
                 binding.importanceEditTextView.setTextColor(resources.getColor(R.color.black))
                 binding.importanceImageView.visibility=View.GONE
                 val params:MarginLayoutParams=binding.importanceEditTextView.layoutParams
@@ -244,7 +245,16 @@ class ToDoItemEditFragment : Fragment() {
 
     private fun saveItem(){
         val text=binding.taskEditText.text.toString()
-        val importance=binding.importanceEditTextView.text.toString()
+
+        val importance = when (binding.importanceEditTextView.text) {
+            Importance.NO.toString() -> {
+                Importance.NO
+            }
+            Importance.LOW.toString() -> {
+                Importance.LOW
+            }
+            else -> Importance.HIGH
+        }
 
         val date_deadline = if(binding.deadlineSwitch.isChecked)
             binding.dateTextView.text.toString()

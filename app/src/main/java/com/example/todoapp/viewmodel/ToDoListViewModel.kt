@@ -3,6 +3,7 @@ package com.example.todoapp.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.todoapp.model.Importance
 import com.example.todoapp.model.ToDoItem
 import com.example.todoapp.repository.TaskListener
 import com.example.todoapp.repository.ToDoItemRepository
@@ -31,7 +32,7 @@ class ToDoListViewModel(private var toDoItemRepository: ToDoItemRepository):View
 
     fun updateItemById(id:String,
                        text:String,
-                       importance:String,
+                       importance:Importance,
                        date_deadline:String,
                        is_complete:Boolean,
                        date_creation:String,
@@ -45,10 +46,11 @@ class ToDoListViewModel(private var toDoItemRepository: ToDoItemRepository):View
         updateItemById(id,
         item.text,
         item.importance,
-        item.date_deadline,
+            item.date_deadline!!,
         !item.is_complete,
         item.date_creation,
-        item.date_changing)
+            item.date_changing!!
+        )
     }
 
     fun deleteItemById(id:String){

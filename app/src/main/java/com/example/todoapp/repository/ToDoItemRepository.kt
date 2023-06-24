@@ -1,5 +1,6 @@
 package com.example.todoapp.repository
 
+import com.example.todoapp.model.Importance
 import com.example.todoapp.model.ToDoItem
 
 typealias TaskListener = (users:List<ToDoItem>) -> Unit
@@ -16,19 +17,19 @@ class ToDoItemRepository {
 
     private fun generateItemList():List<ToDoItem>{
         var items = mutableListOf<ToDoItem>(
-            ToDoItem("1", "Write a todo-app before deadline!!", "High", "June 17, 2023", true, "June 10, 2023", ""),
-            ToDoItem("2", "Write a todo-app before deadline properly", "No", "June 10, 2023", false, "June 14, 2023", "June 16, 2023"),
-            ToDoItem("3", "Plan a visit to the bar", "No", "", false, "June 14, 2023", ""),
-            ToDoItem("4", "Find a kickboxing club", "Low", "", false, "June 14, 2023", "June 16, 2023"),
-            ToDoItem("5", "Go to gym", "Low", "June 17, 2023", true, "June 10, 2023", ""),
-            ToDoItem("6", "Task\nUsual task", "No", "June 11, 2023",true, "June 10, 2023", "June 10, 2023"),
+            ToDoItem("1", "Write a todo-app before deadline!!", Importance.HIGH, "June 17, 2023", true, "June 10, 2023", ""),
+            ToDoItem("2", "Write a todo-app before deadline properly", Importance.NO, "June 10, 2023", false, "June 14, 2023", "June 16, 2023"),
+            ToDoItem("3", "Plan a visit to the bar", Importance.NO, "", false, "June 14, 2023", ""),
+            ToDoItem("4", "Find a kickboxing club", Importance.LOW, "", false, "June 14, 2023", "June 16, 2023"),
+            ToDoItem("5", "Go to gym", Importance.LOW, "June 17, 2023", true, "June 10, 2023", ""),
+            ToDoItem("6", "Task\nUsual task", Importance.NO, "June 11, 2023",true, "June 10, 2023", "June 10, 2023"),
 
-            ToDoItem("7", "Call mom", "High", "", true, "June 14, 2023", ""),
-            ToDoItem("8", "Choose a present for mom", "High", "June 22, 2023", false, "June 14, 2023", "June 16, 2023"),
-            ToDoItem("9", "Task\nNeed to complete task\nIt's not so important\nBut have to be done", "Low", "June 17, 2023", true, "June 14, 2023", ""),
-            ToDoItem("10", "Prepare for exam", "Low", "", false, "June 14, 2023", "June 16, 2023"),
-            ToDoItem("11", "What is this task?", "High", "", false, "June 10, 2023", ""),
-            ToDoItem("12", "Bye ingredients for salad", "No", "", true, "June 10, 2023", "June 10, 2023"),
+            ToDoItem("7", "Call mom", Importance.HIGH, "", true, "June 14, 2023", ""),
+            ToDoItem("8", "Choose a present for mom", Importance.HIGH, "June 22, 2023", false, "June 14, 2023", "June 16, 2023"),
+            ToDoItem("9", "Task\nNeed to complete task\nIt's not so important\nBut have to be done", Importance.LOW, "June 17, 2023", true, "June 14, 2023", ""),
+            ToDoItem("10", "Prepare for exam", Importance.LOW, "", false, "June 14, 2023", "June 16, 2023"),
+            ToDoItem("11", "What is this task?", Importance.HIGH, "", false, "June 10, 2023", ""),
+            ToDoItem("12", "Bye ingredients for salad", Importance.NO, "", true, "June 10, 2023", "June 10, 2023"),
 
         )
         doneNum=6
@@ -40,7 +41,7 @@ class ToDoItemRepository {
     }
 
     fun addItem(text:String,
-                importance:String,
+                importance:Importance,
                 date_deadline:String,
                 is_complete:Boolean,
                 date_creation:String,
@@ -77,7 +78,7 @@ class ToDoItemRepository {
 
     fun updateItemById(id:String,
                        text:String,
-                       importance:String,
+                       importance:Importance,
                        date_deadline:String,
                        is_complete:Boolean,
                        date_creation:String,
