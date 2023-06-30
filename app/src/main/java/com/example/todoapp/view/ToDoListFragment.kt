@@ -3,12 +3,14 @@ package com.example.todoapp.view
 import android.annotation.SuppressLint
 import android.graphics.*
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,17 +24,31 @@ import com.example.todoapp.utils.*
 import com.example.todoapp.viewmodel.ToDoListViewModel
 import com.example.todoapp.viewmodel.factory
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.internal.wait
+import java.util.UUID
 
 
 class ToDoListFragment : Fragment(){
 
-    private lateinit var binding: FragmentToDoListBinding
+    private lateinit var binding:FragmentToDoListBinding
     lateinit var adapter: ToDoListAdapter
     private val toDoListViewModel: ToDoListViewModel by viewModels {factory()}
     private var isVisible=true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+    }
+
+    private fun setTaskById(id: UUID) {
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                toDoListViewModel.getTaskById(id)
+            }
+        }
     }
 
     override fun onCreateView(
@@ -46,7 +62,6 @@ class ToDoListFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpUi()
-        toDoListViewModel.addListener(taskListener)
     }
 
     override fun onResume() {
@@ -54,48 +69,48 @@ class ToDoListFragment : Fragment(){
         setUpUi()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        toDoListViewModel.deleteListener(taskListener)
-    }
 
     private fun setUpRecyclerView(){
+        toDoListViewModel.updateList()
         adapter= ToDoListAdapter(object : TaskActionListener {
-            override fun onTaskDetails(itemId: String) {
-                openItemEditFragment(itemId)
+            override fun onTaskDetails(itemId: UUID) {
+                openItemEditFragment(itemId.toString())
             }
 
-            override fun onTaskChangeComplete(itemId: String) {
-                val itemLD=toDoListViewModel.getItemById(itemId)
-                val item=itemLD.value!!
-                toDoListViewModel.updateItemById(itemId,
-                item.text,
-                item.importance,
-                item.date_deadline,
-                !item.is_complete,
-                item.date_creation,
-                item.date_changing)
-            }
-
-            override fun onCompleteNumberChanged() {
+            override fun onTaskChangeComplete(itemId: UUID) {
+                setTaskById(itemId)
+                val item=toDoListViewModel._currentTask
+                item.done=!item.done
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    toDoListViewModel.setTaskComplete(itemId)
+                    toDoListViewModel.updateList()
+                }
                 setUpCompleteNum()
             }
 
-            override fun onTaskDelete(itemId: String) {
-                toDoListViewModel.deleteItemById(itemId)
+            override fun onCompleteNumberChanged() {
+            }
+
+            override fun onTaskDelete(itemId: UUID) {
+                toDoListViewModel.deleteTaskByIdDb(itemId)
             }
 
             override fun openActionMenu() {
 
             }
         })
-        val newValue=toDoListViewModel.getToDoList().value!!
-        adapter.items=newValue
+        viewLifecycleOwner.lifecycleScope.launch {
+            toDoListViewModel.updateList()
+            toDoListViewModel.getList().collect {
+                if(isVisible) adapter.items=it
+                else adapter.items=it.filter { !it.done }
+            }
+        }
         binding.recyclerView.adapter=adapter
         val layoutManager= LinearLayoutManager(context)
         binding.recyclerView.layoutManager=layoutManager
 
-        setSwipeAction()
+        //setSwipeAction()
     }
 
     private fun setUpFloatingButton(){
@@ -114,32 +129,52 @@ class ToDoListFragment : Fragment(){
         setUpRecyclerView()
         setUpVisibility()
         setUpCompleteNum()
+        setUpRefreshLayout()
+        setSwipeAction()
+    }
+
+    private fun setUpRefreshLayout(){
+        binding.swipeToRefreshLayout.setOnRefreshListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                toDoListViewModel.updateList()
+                toDoListViewModel.getList().collect() {
+                    if(isVisible) adapter.items=it
+                    else adapter.items=it.filter { !it.done }
+                }
+
+            }
+            binding.swipeToRefreshLayout.isRefreshing=false
+        }
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
     private fun setUpVisibility(){
-        val drawable=binding.eyeButton.drawable
+
+        if(isVisible){
+            binding.eyeButton.setImageResource(R.drawable.icon_watch)
+        }
+        else{
+            binding.eyeButton.setImageResource(R.drawable.ic_not_watch)
+        }
+
         binding.eyeButton.setOnClickListener {
-            isVisible = if(drawable.equals(resources.getDrawable(R.drawable.icon_watch))){
+            if(isVisible){
                 binding.eyeButton.setImageResource(R.drawable.ic_not_watch)
-                false
-            } else{
-                binding.eyeButton.setImageResource(R.drawable.icon_watch)
-                true
             }
+            else{
+                binding.eyeButton.setImageResource(R.drawable.icon_watch)
+            }
+            isVisible=!isVisible
+            setUpRecyclerView()
         }
     }
 
     @SuppressLint("SetTextI18n")
     private fun setUpCompleteNum(){
-        binding.completeTextView.text="${getString(R.string.done_title_text)} ${toDoListViewModel.getCompleteNumber()}"
+        binding.completeTextView.text="${getString(R.string.done_title_text)} ${toDoListViewModel.getCompleteTaskNum()} / ${toDoListViewModel.getTaskNum()}"
     }
 
-    private val taskListener:TaskListener={
-        adapter.items=it.reversed()
-    }
-
-    private fun setSwipeAction() {
+    private fun setSwipeAction(){
         val itemTouchHelper = ItemTouchHelper(
             object : ItemTouchHelper.SimpleCallback(
                 0,
@@ -154,17 +189,26 @@ class ToDoListFragment : Fragment(){
 
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                     val itemId = (viewHolder.itemView.tag as ToDoItem).id
+                    setTaskById(itemId)
                     when (direction) {
                         ItemTouchHelper.LEFT -> {
-                            val item = toDoListViewModel.getItemById(itemId).value!!
+                            val item = toDoListViewModel._currentTask
                             val position = toDoListViewModel.getPositionById(itemId)
-                            toDoListViewModel.deleteItemById(itemId)
+                            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                                toDoListViewModel.deleteTaskById(itemId)
+                                toDoListViewModel.updateList()
+                                //showRestoreItemSnackbar(item, position)
+                            }
                             setUpCompleteNum()
-                            showRestoreItemSnackbar(item, position)
+                            setUpRecyclerView()
                         }
                         ItemTouchHelper.RIGHT -> {
-                            toDoListViewModel.setTaskComplete(itemId)
+                            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                                toDoListViewModel.setTaskComplete(itemId)
+                                toDoListViewModel.updateList()
+                            }
                             setUpCompleteNum()
+                            setUpRecyclerView()
                         }
                     }
                 }
@@ -174,7 +218,7 @@ class ToDoListFragment : Fragment(){
                 private fun showRestoreItemSnackbar(item: ToDoItem, position: Int) {
                     Snackbar.make(binding.recyclerView, "Task deleted", Snackbar.LENGTH_LONG)
                         .setAction("Undo") {
-                            toDoListViewModel.restoreItem(item, position)
+                            //toDoListViewModel.restoreItem(item, position)
                         }.show()
                 }
 

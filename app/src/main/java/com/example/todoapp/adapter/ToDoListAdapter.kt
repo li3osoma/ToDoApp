@@ -2,24 +2,27 @@ package com.example.todoapp.utils
 
 import android.annotation.SuppressLint
 import android.graphics.Paint
+import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.PopupMenu
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.todoapp.R
-import com.example.todoapp.model.ToDoItem
 import com.example.todoapp.databinding.ItemTaskBinding
-import com.example.todoapp.model.Importance
+import com.example.todoapp.model.ToDoItem
+import java.util.UUID
+
 
 interface TaskActionListener{
-    fun onTaskDetails(itemId:String)
-    fun onTaskChangeComplete(itemId:String)
+    fun onTaskDetails(itemId:UUID)
+    fun onTaskChangeComplete(itemId:UUID)
     fun onCompleteNumberChanged()
-    fun onTaskDelete(itemId: String)
+    fun onTaskDelete(itemId: UUID)
     fun openActionMenu()
 }
 
@@ -49,10 +52,10 @@ class ToDoListDiffUtilCallback(
         return oldItem.id.equals(newItem.id)
                 && oldItem.text.equals(newItem.text)
                 && oldItem.importance.equals(newItem.importance)
-                && oldItem.date_deadline.equals(newItem.date_deadline)
-                && oldItem.is_complete.equals(newItem.is_complete)
-                && oldItem.date_changing.equals(newItem.date_changing)
-                && oldItem.date_creation.equals(newItem.date_creation)
+                && oldItem.deadline?.equals(newItem.deadline) ?: true
+                && oldItem.done.equals(newItem.done)
+                && oldItem.changed_at.equals(newItem.changed_at)
+                && oldItem.created_at.equals(newItem.created_at)
 
     }
 
@@ -85,52 +88,56 @@ class ToDoListAdapter(
         return items.size
     }
 
-    @SuppressLint("ResourceType")
-    override fun onBindViewHolder(holder: ToDoListViewHolder, position: Int) {
-        holder.itemView.tag=items[position]
-        val button:CompoundButton=holder.itemView.findViewById(R.id.checkbox)
-        button.tag=items[position]
 
-        holder.binding.checkbox.isChecked=items[position].is_complete
-        if(items[position].is_complete) {
+    private fun setUpItemCheckbox(holder: ToDoListViewHolder, position: Int, completeColor:Int, incompleteColor:Int){
+        holder.binding.checkbox.isChecked=items[position].done
+        if(items[position].done) {
             holder.binding.text.paintFlags =
                 holder.binding.text.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-            holder.binding.text.setTextColor(R.color.grey)
+            holder.binding.text.setTextColor(completeColor)
         }
         else{
             holder.binding.text.paintFlags =
                 holder.binding.text.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-            holder.binding.text.setTextColor(R.color.black)
+            holder.binding.text.setTextColor(incompleteColor)
         }
+
+        holder.binding.checkbox.setOnClickListener {
+            val itemId:UUID=(it.tag as ToDoItem).id
+            taskActionListener.onTaskChangeComplete(itemId)
+            taskActionListener.onCompleteNumberChanged()
+        }
+
+    }
+    private fun setUoItemImportance(holder: ToDoListViewHolder, position: Int){
         when (items[position].importance) {
-            Importance.LOW -> {
+            ToDoItem.Importance.low -> {
                 holder.binding.imageView.setImageResource(R.drawable.icon_slow)
                 holder.binding.imageView.visibility=View.VISIBLE
 
             }
-            Importance.HIGH -> {
+            ToDoItem.Importance.important -> {
                 holder.binding.imageView.setImageResource(R.drawable.icon_run)
                 holder.binding.imageView.visibility=View.VISIBLE
             }
             else -> holder.binding.imageView.visibility=View.GONE
         }
-
-        if(items[position].date_deadline!="") {
+    }
+    private fun setUpItemDeadline(holder: ToDoListViewHolder, position: Int){
+        if(items[position].deadline.toString()!="0") {
             holder.binding.deadline.visibility=View.VISIBLE
-            holder.binding.deadline.text=items[position].date_deadline
+            holder.binding.deadline.text=
+                DateUtils.dateToString(DateUtils.longToDate(items[position].deadline!!))
         }
-        else holder.binding.deadline.visibility=View.INVISIBLE
-
+        else{
+            holder.binding.deadline.visibility=View.GONE
+        }
+    }
+    private fun setUpItemText(holder: ToDoListViewHolder, position: Int){
         holder.binding.text.text= items[position].text
-
+    }
+    private fun setUpItemClickListener(holder: ToDoListViewHolder){
         holder.itemView.setOnClickListener(this)
-
-        holder.binding.checkbox.setOnClickListener {
-            val itemId:String=(it.tag as ToDoItem).id
-            taskActionListener.onTaskChangeComplete(itemId)
-            taskActionListener.onCompleteNumberChanged()
-        }
-
         holder.itemView.setOnLongClickListener(View.OnLongClickListener {
             val todoItem=it.tag as ToDoItem
             val popupMenu = PopupMenu(holder.itemView.context, holder.itemView)
@@ -147,11 +154,26 @@ class ToDoListAdapter(
             popupMenu.show()
             true
         })
+    }
 
+
+    @SuppressLint("ResourceType")
+    override fun onBindViewHolder(holder: ToDoListViewHolder, position: Int) {
+        holder.itemView.tag=items[position]
+        val button:CompoundButton=holder.itemView.findViewById(R.id.checkbox)
+        button.tag=items[position]
+
+        Log.println(Log.INFO, "CHECK ADAPTER", "${items[position]}")
+
+        setUpItemCheckbox(holder,position, R.color.grey, R.color.black)
+        setUoItemImportance(holder,position)
+        setUpItemDeadline(holder, position)
+        setUpItemText(holder, position)
+        setUpItemClickListener(holder)
     }
 
     override fun onClick(v: View) {
-        val itemId:String=(v.tag as ToDoItem).id
+        val itemId:UUID=(v.tag as ToDoItem).id
         taskActionListener.onTaskDetails(itemId)
     }
 }

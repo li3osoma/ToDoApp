@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppBarTitleStyle">
+        <item name="fontFamily">Roboto</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="collapsedAppBarTitleStyle">
+        <item name="fontFamily">Roboto</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="completeNumberTextStyle">
+        <item name="fontFamily">Roboto</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="listTaskTextStyle">
+        <item name="fontFamily">Roboto</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="listTaskDateTextStyle">
+        <item name="fontFamily">Roboto</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/grey</item>
+    </style>
+
+    <style name="editTaskTextStyle">
+        <item name="fontFamily">Roboto</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor"></item>
+    </style>
+
+    <style name="editSettingsTitleStyle">
+        <item name="fontFamily">Roboto</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="editSettingsTextStyle">
+        <item name="fontFamily">Roboto</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="editSettingsDisabledTextStyle">
+        <item name="fontFamily">Roboto</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/grey</item>
+    </style>
+
+<!--    <style name="backgroundStyle">-->
+<!--        <item name="fontFamily">Roboto</item>-->
+<!--        <item name="android:textSize"></item>-->
+<!--        <item name="android:textColor"></item>-->
+<!--    </style>-->
+
+</resources>

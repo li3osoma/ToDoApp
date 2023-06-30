@@ -4,8 +4,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.todoapp.application.App
-import com.example.todoapp.viewmodel.ToDoItemEditViewModel
-import com.example.todoapp.viewmodel.ToDoListViewModel
 
 class ViewModelFactory(private val app: App):ViewModelProvider.Factory{
 
@@ -13,10 +11,10 @@ class ViewModelFactory(private val app: App):ViewModelProvider.Factory{
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         val viewModel = when (modelClass) {
             ToDoListViewModel::class.java -> {
-                ToDoListViewModel(app.toDoItemRepository)
+                ToDoListViewModel(app, app.toDoRepository)
             }
             ToDoItemEditViewModel::class.java -> {
-                ToDoItemEditViewModel(app.toDoItemRepository)
+                ToDoItemEditViewModel(app, app.toDoRepository)
             }
             else -> {
                 throw IllegalStateException("Unknown view model class")
