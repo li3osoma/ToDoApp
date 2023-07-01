@@ -41,6 +41,7 @@ class ToDoListFragment : Fragment(){
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        toDoListViewModel.updateList()
     }
 
     private fun setTaskById(id: UUID) {
@@ -65,6 +66,7 @@ class ToDoListFragment : Fragment(){
     }
 
     override fun onResume() {
+        Log.println(Log.DEBUG, "HUI", "HUI")
         super.onResume()
         setUpUi()
     }
@@ -78,13 +80,11 @@ class ToDoListFragment : Fragment(){
             }
 
             override fun onTaskChangeComplete(itemId: UUID) {
-                setTaskById(itemId)
-                val item=toDoListViewModel._currentTask
-                item.done=!item.done
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    toDoListViewModel.setTaskComplete(itemId)
-                    toDoListViewModel.updateList()
-                }
+//                setTaskById(itemId)
+//                val item=toDoListViewModel._currentTask
+//                item.done=!item.done
+                toDoListViewModel.setTaskComplete(itemId)
+                toDoListViewModel.updateList()
                 setUpCompleteNum()
             }
 
@@ -100,7 +100,6 @@ class ToDoListFragment : Fragment(){
             }
         })
         viewLifecycleOwner.lifecycleScope.launch {
-            toDoListViewModel.updateList()
             toDoListViewModel.getList().collect {
                 if(isVisible) adapter.items=it
                 else adapter.items=it.filter { !it.done }
@@ -112,6 +111,7 @@ class ToDoListFragment : Fragment(){
 
         //setSwipeAction()
     }
+
 
     private fun setUpFloatingButton(){
         binding.addButton.setOnClickListener {
@@ -141,6 +141,7 @@ class ToDoListFragment : Fragment(){
                     if(isVisible) adapter.items=it
                     else adapter.items=it.filter { !it.done }
                 }
+                setUpCompleteNum()
 
             }
             binding.swipeToRefreshLayout.isRefreshing=false

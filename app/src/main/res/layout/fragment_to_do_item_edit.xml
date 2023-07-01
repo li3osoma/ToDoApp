@@ -109,7 +109,7 @@
                 app:layout_constraintStart_toEndOf="@id/importanceImageView"
                 android:layout_marginTop="10dp"
                 android:layout_marginStart="20dp"
-                android:text="No"
+                android:text="basic"
                 android:textColor="@color/grey"
                 android:textSize="15sp"
                 android:clickable="true"/>

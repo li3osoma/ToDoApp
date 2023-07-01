@@ -45,7 +45,7 @@ class ToDoItemEditViewModel(private val app: App, private val toDoRepository: To
                 val response = toDoRepository.updateTaskApi(item.id, item)
                 if (response is Resource.Success) {
 
-                    //updateTaskDb(item) // Не знаю, нужно или не нужно
+                    updateTaskDb(item) // Не знаю, нужно или не нужно
 
                 } else if (response is Resource.Error) {
 
@@ -105,7 +105,7 @@ class ToDoItemEditViewModel(private val app: App, private val toDoRepository: To
 
                 if (response is Resource.Success) {
 
-                    //addTaskDb(item) // Не знаю, нужно или не нужно
+                    addTaskDb(item) // Не знаю, нужно или не нужно
 
                 } else if (response is Resource.Error) {
 

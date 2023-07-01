@@ -35,8 +35,8 @@ class ToDoRepository(val context: Context, val todoDb:ToDoDatabase, val sharedPr
     var needToSynchronize=false
 
     private val editor = sharedPreferences.edit()
-    var doneNum= 0
-    var taskNum= 0
+    var doneNum = 0
+    var taskNum = 0
 
     private fun updateRevision(r:Int){
         editor.putInt(KEY, r)
@@ -125,7 +125,6 @@ class ToDoRepository(val context: Context, val todoDb:ToDoDatabase, val sharedPr
 
         return try {
 
-            val item=getTaskDb(id)
             val response = RetrofitInstance.api.deleteTask(getRevision(), id)
 
             if (response.isSuccessful) {
@@ -134,8 +133,6 @@ class ToDoRepository(val context: Context, val todoDb:ToDoDatabase, val sharedPr
 
                 if (resultResponse != null) {
 
-                    if(item.done) doneNum--
-                    taskNum--
                     updateRevision(resultResponse.revision)
                     Resource.Success(resultResponse)
 
@@ -171,9 +168,6 @@ class ToDoRepository(val context: Context, val todoDb:ToDoDatabase, val sharedPr
 
                 if (resultResponse != null) {
 
-                    if(item.done) doneNum++
-                    taskNum++
-
                     updateRevision(resultResponse.revision)
                     Resource.Success(resultResponse)
 
@@ -207,11 +201,6 @@ class ToDoRepository(val context: Context, val todoDb:ToDoDatabase, val sharedPr
                 val resultResponse = response.body()
 
                 if (resultResponse != null) {
-
-                    if(getTaskDb(id).done!=item.done){
-                        if(item.done) doneNum++
-                        else doneNum--
-                    }
                     updateRevision(resultResponse.revision)
                     Resource.Success(resultResponse)
 
@@ -241,11 +230,26 @@ class ToDoRepository(val context: Context, val todoDb:ToDoDatabase, val sharedPr
 
     fun getListDb(): Flow<List<ToDoItem>> = todoDb.dao().getList()
 
-    suspend fun deleteTaskByIdDb(id: UUID) = todoDb.dao().deleteTaskById(id)
+    suspend fun deleteTaskByIdDb(id: UUID) {
+        val item=getTaskDb(id)
+        if(item.done) doneNum--
+        taskNum--
+        todoDb.dao().deleteTaskById(id)
+    }
 
-    suspend fun addTaskDb(item: ToDoItem) = todoDb.dao().addTask(item)
+    suspend fun addTaskDb(item: ToDoItem){
+        if(item.done) doneNum++
+        taskNum++
+        todoDb.dao().addTask(item)
+    }
 
-    suspend fun updateTaskDb(item: ToDoItem) = todoDb.dao().updateTask(item)
+    suspend fun updateTaskDb(item: ToDoItem){
+        if(getTaskDb(item.id).done!=item.done){
+            if(item.done) doneNum++
+            else doneNum--
+        }
+        todoDb.dao().updateTask(item)
+    }
 
     suspend fun getTaskDb(id:UUID) = todoDb.dao().getTask(id)
 

@@ -31,8 +31,8 @@ class ToDoListViewModel(private val app: App, private val toDoRepository: ToDoRe
     private val _currentList= MutableStateFlow<Resource<List<ToDoItem>>>(Resource.Loading())
     private val currentList: StateFlow<Resource<List<ToDoItem>>> = _currentList
 
-//    var doneNum=0
-//    var taskNum=0
+//    var doneNum = 0
+//    var taskNum = 0
     var _currentTask:ToDoItem = createDefaultTask()
 
     private val _counterToDo: MutableStateFlow<Int> = MutableStateFlow(0)
