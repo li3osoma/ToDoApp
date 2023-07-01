@@ -101,8 +101,8 @@ class ToDoListFragment : Fragment(){
         })
         viewLifecycleOwner.lifecycleScope.launch {
             toDoListViewModel.getList().collect {
-                if(isVisible) adapter.items=it
-                else adapter.items=it.filter { !it.done }
+                if(isVisible) adapter.items=it.reversed()
+                else adapter.items=it.filter { !it.done }.reversed()
             }
         }
         binding.recyclerView.adapter=adapter
@@ -138,8 +138,8 @@ class ToDoListFragment : Fragment(){
             viewLifecycleOwner.lifecycleScope.launch {
                 toDoListViewModel.updateList()
                 toDoListViewModel.getList().collect() {
-                    if(isVisible) adapter.items=it
-                    else adapter.items=it.filter { !it.done }
+                    if(isVisible) adapter.items=it.reversed()
+                    else adapter.items=it.filter { !it.done }.reversed()
                 }
                 setUpCompleteNum()
 
