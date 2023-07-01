@@ -8,6 +8,7 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.example.todoapp.R
 import com.example.todoapp.database.UUIDConverter
+import com.example.todoapp.utils.CLIENT_ID
 import com.example.todoapp.utils.DATABASE_NAME
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
@@ -49,7 +50,7 @@ data class ToDoItem(
     var changed_at:Long,
 
     @SerializedName("last_updated_by")
-    var last_updated_by:String = "a"
+    var last_updated_by:String = CLIENT_ID
 ): Serializable{
     enum class Importance {
 

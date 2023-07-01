@@ -10,6 +10,7 @@ import com.example.todoapp.api.response.TaskResponse
 import com.example.todoapp.database.ToDoDatabase
 import com.example.todoapp.model.ToDoItem
 import com.example.todoapp.utils.API_PREFERENCES
+import com.example.todoapp.utils.KEY
 import com.example.todoapp.utils.Resource
 import com.example.todoapp.utils.TypeUtils
 import kotlinx.coroutines.Dispatchers
@@ -34,16 +35,15 @@ class ToDoRepository(val context: Context, val todoDb:ToDoDatabase, val sharedPr
     var needToSynchronize=false
 
     private val editor = sharedPreferences.edit()
-    private val key="REVISION"
     var doneNum= 0
     var taskNum= 0
 
     private fun updateRevision(r:Int){
-        editor.putInt(key, r)
+        editor.putInt(KEY, r)
         editor.apply()
     }
     private fun getRevision():Int{
-        return sharedPreferences.getInt(key, 0)
+        return sharedPreferences.getInt(KEY, 0)
     }
 
     fun loadList(): Flow<Resource<List<ToDoItem>>> = flow{
