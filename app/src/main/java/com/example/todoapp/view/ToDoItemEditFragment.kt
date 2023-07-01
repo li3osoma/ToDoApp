@@ -187,7 +187,7 @@ class ToDoItemEditFragment : Fragment() {
                 binding.importanceImageView.visibility = View.GONE
                 val params: MarginLayoutParams = binding.importanceEditTextView.layoutParams
                         as MarginLayoutParams
-                params.marginStart = 20
+                params.marginStart = 70
                 binding.importanceEditTextView.layoutParams = params
             }
         }
