@@ -20,8 +20,7 @@ import java.util.UUID
 
 interface TaskActionListener{
     fun onTaskDetails(itemId:UUID)
-    fun onTaskChangeComplete(itemId:UUID)
-    fun onCompleteNumberChanged()
+    fun onTaskChangeComplete(item:ToDoItem)
     fun onTaskDelete(itemId: UUID)
     fun openActionMenu()
 }
@@ -104,8 +103,7 @@ class ToDoListAdapter(
 
         holder.binding.checkbox.setOnClickListener {
             val itemId:UUID=(it.tag as ToDoItem).id
-            taskActionListener.onTaskChangeComplete(itemId)
-            taskActionListener.onCompleteNumberChanged()
+            taskActionListener.onTaskChangeComplete(items[position])
         }
 
     }

@@ -16,10 +16,13 @@ import java.util.*
 @Dao
 interface ToDoDao {
     @Query("SELECT * FROM $DATABASE_NAME")
-    fun getList():Flow<List<ToDoItem>>
+    fun getListFlow():Flow<List<ToDoItem>>
+
+    @Query("SELECT * FROM $DATABASE_NAME")
+    fun getList():List<ToDoItem>
 
     @Query("SELECT * FROM $DATABASE_NAME WHERE id = :id")
-    suspend fun getTask(id:UUID): ToDoItem
+    fun getTask(id:UUID): ToDoItem
 
     @Insert
     suspend fun addTask(toDoItem: ToDoItem)

@@ -38,6 +38,7 @@ class ToDoRepository(val context: Context, val todoDb:ToDoDatabase, val sharedPr
     var doneNum = 0
     var taskNum = 0
 
+    //COLLECTING REVISION
     private fun updateRevision(r:Int){
         editor.putInt(KEY, r)
         editor.apply()
@@ -46,7 +47,47 @@ class ToDoRepository(val context: Context, val todoDb:ToDoDatabase, val sharedPr
         return sharedPreferences.getInt(KEY, 0)
     }
 
-    fun loadList(): Flow<Resource<List<ToDoItem>>> = flow{
+
+    //WORKING WITH DATABASE
+    fun getListDb(): Flow<List<ToDoItem>> = todoDb.dao().getListFlow()
+
+    fun getTaskDb(id: UUID):ToDoItem=todoDb.dao().getTask(id)
+
+    suspend fun updateListDb(list: List<ToDoItem>) = todoDb.dao().updateList(list)
+
+    suspend fun deleteTaskByIdDb(id: UUID) {
+        val item=getTaskDb(id)
+        if(item.done) doneNum--
+        taskNum--
+        todoDb.dao().deleteTaskById(id)
+    }
+
+    suspend fun addTaskDb(item: ToDoItem){
+        todoDb.dao().addTask(item)
+    }
+
+    suspend fun updateTaskDb(item: ToDoItem){
+        todoDb.dao().updateTask(item)
+    }
+
+    suspend fun restoreItem(item:ToDoItem, position:Int){
+        loadList()
+        val list = currentList
+        list.add(position, item)
+        updateListApi(list)
+    }
+
+    fun getPositionById(itemId:UUID):Int{
+        for(i in currentList.indices){
+            if(currentList[i].id==itemId)
+                return i
+        }
+        return -1
+    }
+
+
+    //WORKING WITH NETWORK
+    suspend fun loadList(): Resource<TaskListResponse>{
 
         //emit(Resource.Loading())
 
@@ -59,34 +100,51 @@ class ToDoRepository(val context: Context, val todoDb:ToDoDatabase, val sharedPr
                 val resultResponse = response.body()
 
                 if (resultResponse != null) {
+//                    todoDb.dao().updateList(resultResponse.list)
+                    val currentNetworkList=resultResponse.list.reversed()
+                    val currentDatabaseList=todoDb.dao().getList()
+                    val mergedList=HashMap<UUID, ToDoItem>()
 
+//                    taskNum=currentList.size
+//                    doneNum=currentList.count { it.done }
+
+                    for (item in currentDatabaseList) {
+                        mergedList[item.id] = item
+                    }
+                    for (item in currentNetworkList) {
+                        if (mergedList.containsKey(item.id)) {
+                            val item1 = mergedList[item.id]
+                            if (item.changed_at > item1!!.changed_at) {
+                                mergedList[item.id] = item
+                            } else {
+                                mergedList[item.id] = item1
+                            }
+                        } else if (resultResponse.revision != getRevision()) {
+                            mergedList[item.id] = item
+                        }
+                    }
                     updateRevision(resultResponse.revision)
-                    todoDb.dao().updateList(resultResponse.list)
-                    currentList=resultResponse.list.reversed().toMutableList()
-                    taskNum=currentList.size
-                    doneNum=currentList.count { it.done }
-
-                    emit(Resource.Success(resultResponse.list.reversed()))
+                    return updateListApi(mergedList.values.toList())
 
                 } else {
 
-                    emit(Resource.Error("Empty response body"))
+                    return Resource.Error("Empty response body")
 
                 }
 
             } else {
 
-                emit(Resource.Error("Request failed with ${response.code()}: ${response.message()}"))
+                return Resource.Error("Request failed with ${response.code()}: ${response.message()}")
 
             }
 
         } catch (e: Exception) {
 
-            emit(Resource.Error("An error occurred: ${e.localizedMessage ?: "Unknown error"}"))
+            return Resource.Error("An error occurred: ${e.localizedMessage ?: "Unknown error"}")
 
         }
 
-    }.flowOn(Dispatchers.IO)
+    }
 
     suspend fun updateListApi(list: List<ToDoItem>):Resource<TaskListResponse>{
 
@@ -224,64 +282,5 @@ class ToDoRepository(val context: Context, val todoDb:ToDoDatabase, val sharedPr
 
     }
 
-    // Взаимодействия с локальной БД
-
-    suspend fun updateListDb(list: List<ToDoItem>) = todoDb.dao().updateList(list)
-
-    fun getListDb(): Flow<List<ToDoItem>> = todoDb.dao().getList()
-
-    suspend fun deleteTaskByIdDb(id: UUID) {
-        val item=getTaskDb(id)
-        if(item.done) doneNum--
-        taskNum--
-        todoDb.dao().deleteTaskById(id)
-    }
-
-    suspend fun addTaskDb(item: ToDoItem){
-        if(item.done) doneNum++
-        taskNum++
-        todoDb.dao().addTask(item)
-    }
-
-    suspend fun updateTaskDb(item: ToDoItem){
-        if(getTaskDb(item.id).done!=item.done){
-            if(item.done) doneNum++
-            else doneNum--
-        }
-        todoDb.dao().updateTask(item)
-    }
-
-    suspend fun getTaskDb(id:UUID) = todoDb.dao().getTask(id)
-
-    suspend fun restoreItem(item:ToDoItem, position:Int){
-        loadList()
-        val list = currentList
-        list.add(position, item)
-        updateListApi(list)
-    }
-
-    fun getPositionById(itemId:UUID):Int{
-        for(i in currentList.indices){
-            if(currentList[i].id==itemId)
-                return i
-        }
-        return -1
-    }
-
-    //    fun listenCurrentList():Flow<List<ToDoItem>> = callbackFlow{
-//        val listener:TaskListener = {
-//            trySend(it)
-//        }
-//        listeners.add(listener)
-//
-//        awaitClose {
-//            listeners.remove(listener)
-//        }
-//    }.buffer(Channel.CONFLATED)
-
-
-//    fun getListApi(): Flow<Resource<TaskListResponse>> = flow{
-//        emit(safeApiCall { RetrofitInstance.api.getList() })
-//    }.flowOn(Dispatchers.IO)
 
 }

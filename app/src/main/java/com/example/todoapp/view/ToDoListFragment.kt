@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -16,19 +17,18 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.example.todoapp.ConnectionObserver
 import com.example.todoapp.R
 import com.example.todoapp.databinding.FragmentToDoListBinding
 import com.example.todoapp.model.ToDoItem
-import com.example.todoapp.repository.TaskListener
 import com.example.todoapp.utils.*
-import com.example.todoapp.viewmodel.ToDoListViewModel
+import com.example.todoapp.viewmodel.ToDoViewModel
 import com.example.todoapp.viewmodel.factory
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.internal.wait
 import java.util.UUID
 
 
@@ -36,20 +36,11 @@ class ToDoListFragment : Fragment(){
 
     private lateinit var binding:FragmentToDoListBinding
     lateinit var adapter: ToDoListAdapter
-    private val toDoListViewModel: ToDoListViewModel by viewModels {factory()}
-    private var isVisible=true
+    private val toDoViewModel: ToDoViewModel by viewModels {factory()}
+    private var internetState = ConnectionObserver.Status.Available
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        toDoListViewModel.updateList()
-    }
-
-    private fun setTaskById(id: UUID) {
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                toDoListViewModel.getTaskById(id)
-            }
-        }
     }
 
     override fun onCreateView(
@@ -62,56 +53,61 @@ class ToDoListFragment : Fragment(){
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        toDoViewModel.getList()
         setUpUi()
-    }
 
-    override fun onResume() {
-        Log.println(Log.DEBUG, "HUI", "HUI")
-        super.onResume()
-        setUpUi()
-    }
+        lifecycleScope.launch {
+            toDoViewModel.list.collect{
+                setAdapterItems(it)
+                setUpCompleteNum(it.count { it -> it.done }, it.size)
+            }
+        }
 
+        internetState = toDoViewModel.status.value
+    }
 
     private fun setUpRecyclerView(){
-        toDoListViewModel.updateList()
         adapter= ToDoListAdapter(object : TaskActionListener {
             override fun onTaskDetails(itemId: UUID) {
                 openItemEditFragment(itemId.toString())
             }
 
-            override fun onTaskChangeComplete(itemId: UUID) {
-//                setTaskById(itemId)
-//                val item=toDoListViewModel._currentTask
-//                item.done=!item.done
-                toDoListViewModel.setTaskComplete(itemId)
-                toDoListViewModel.updateList()
-                setUpCompleteNum()
-            }
-
-            override fun onCompleteNumberChanged() {
+            override fun onTaskChangeComplete(item:ToDoItem) {
+                //toDoViewModel.getTaskById(itemId)
+                //val item=toDoViewModel.item.value
+                item.done=!item.done
+                if (internetState == ConnectionObserver.Status.Available) {
+                    toDoViewModel.updateTaskApi(item)
+                } else {
+                    Toast.makeText(
+                        context,
+                        "No internet connection, will upload with later. Continue offline.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                toDoViewModel.updateTaskDb(item)
             }
 
             override fun onTaskDelete(itemId: UUID) {
-                toDoListViewModel.deleteTaskByIdDb(itemId)
+                deleteTaskById(itemId)
             }
 
             override fun openActionMenu() {
 
             }
         })
-        viewLifecycleOwner.lifecycleScope.launch {
-            toDoListViewModel.getList().collect {
-                if(isVisible) adapter.items=it.reversed()
-                else adapter.items=it.filter { !it.done }.reversed()
-            }
-        }
+
         binding.recyclerView.adapter=adapter
         val layoutManager= LinearLayoutManager(context)
         binding.recyclerView.layoutManager=layoutManager
 
         //setSwipeAction()
     }
-
+    private fun setAdapterItems(list: List<ToDoItem>){
+        if(toDoViewModel.modeVisibility) adapter.items=list.reversed()
+        else adapter.items=list.filter { !it.done }.reversed()
+        Log.println(Log.DEBUG, "SET ADAPTER", list.map { it.done }.toList().reversed().toString())
+    }
 
     private fun setUpFloatingButton(){
         binding.addButton.setOnClickListener {
@@ -128,21 +124,24 @@ class ToDoListFragment : Fragment(){
         setUpFloatingButton()
         setUpRecyclerView()
         setUpVisibility()
-        setUpCompleteNum()
         setUpRefreshLayout()
         setSwipeAction()
     }
 
+    @SuppressLint("SetTextI18n")
+    private fun setUpCompleteNum(doneNum:Int, taskNum:Int){
+        binding.completeTextView.text=getString(R.string.done_title_text)+" $doneNum / $taskNum"
+    }
     private fun setUpRefreshLayout(){
         binding.swipeToRefreshLayout.setOnRefreshListener {
-            viewLifecycleOwner.lifecycleScope.launch {
-                toDoListViewModel.updateList()
-                toDoListViewModel.getList().collect() {
-                    if(isVisible) adapter.items=it.reversed()
-                    else adapter.items=it.filter { !it.done }.reversed()
-                }
-                setUpCompleteNum()
-
+            if (internetState == ConnectionObserver.Status.Available) {
+                toDoViewModel.getList()
+            } else {
+                Toast.makeText(
+                    context,
+                    "No internet connection, retry later(",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
             binding.swipeToRefreshLayout.isRefreshing=false
         }
@@ -150,8 +149,7 @@ class ToDoListFragment : Fragment(){
 
     @SuppressLint("UseCompatLoadingForDrawables")
     private fun setUpVisibility(){
-
-        if(isVisible){
+        if(toDoViewModel.modeVisibility){
             binding.eyeButton.setImageResource(R.drawable.icon_watch)
         }
         else{
@@ -159,21 +157,20 @@ class ToDoListFragment : Fragment(){
         }
 
         binding.eyeButton.setOnClickListener {
-            if(isVisible){
+            if(toDoViewModel.modeVisibility){
                 binding.eyeButton.setImageResource(R.drawable.ic_not_watch)
             }
             else{
                 binding.eyeButton.setImageResource(R.drawable.icon_watch)
             }
-            isVisible=!isVisible
-            setUpRecyclerView()
+            toDoViewModel.changeMode()
         }
     }
 
-    @SuppressLint("SetTextI18n")
-    private fun setUpCompleteNum(){
-        binding.completeTextView.text="${getString(R.string.done_title_text)} ${toDoListViewModel.getCompleteTaskNum()} / ${toDoListViewModel.getTaskNum()}"
-    }
+//    @SuppressLint("SetTextI18n")
+//    private fun setUpCompleteNum(){
+//        binding.completeTextView.text="${getString(R.string.done_title_text)} ${toDoListViewModel.getCompleteTaskNum()} / ${toDoListViewModel.getTaskNum()}"
+//    }
 
     private fun setSwipeAction(){
         val itemTouchHelper = ItemTouchHelper(
@@ -190,26 +187,29 @@ class ToDoListFragment : Fragment(){
 
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                     val itemId = (viewHolder.itemView.tag as ToDoItem).id
-                    setTaskById(itemId)
+                    toDoViewModel.getTaskById(itemId)
                     when (direction) {
                         ItemTouchHelper.LEFT -> {
-                            val item = toDoListViewModel._currentTask
-                            val position = toDoListViewModel.getPositionById(itemId)
+                            val item = toDoViewModel.item
+                            val position = toDoViewModel.getPositionById(itemId)
                             viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                toDoListViewModel.deleteTaskById(itemId)
-                                toDoListViewModel.updateList()
+                                deleteTaskById(itemId)
                                 //showRestoreItemSnackbar(item, position)
                             }
-                            setUpCompleteNum()
-                            setUpRecyclerView()
                         }
                         ItemTouchHelper.RIGHT -> {
-                            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                toDoListViewModel.setTaskComplete(itemId)
-                                toDoListViewModel.updateList()
+                            val item=viewHolder.itemView.tag as ToDoItem
+                            item.done=!item.done
+                            if (internetState == ConnectionObserver.Status.Available) {
+                                toDoViewModel.updateTaskApi(item)
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "No internet connection, will upload with later. Continue offline.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
-                            setUpCompleteNum()
-                            setUpRecyclerView()
+                            toDoViewModel.updateTaskDb(item)
                         }
                     }
                 }
@@ -292,6 +292,19 @@ class ToDoListFragment : Fragment(){
             })
         itemTouchHelper.attachToRecyclerView(binding.recyclerView)
 
+    }
+
+    private fun deleteTaskById(id: UUID){
+        if (internetState == ConnectionObserver.Status.Available) {
+            toDoViewModel.deleteTaskByIdApi(id)
+        } else {
+            Toast.makeText(
+                context,
+                "No internet connection, will upload with later. Continue offline.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        toDoViewModel.deleteTaskDb(id)
     }
 
 }

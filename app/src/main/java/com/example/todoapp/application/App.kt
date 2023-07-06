@@ -1,9 +1,13 @@
 package com.example.todoapp.application
 
 import android.app.Application
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
+import com.example.todoapp.NetworkConnectionObserver
+import com.example.todoapp.ServiceLocator
 import com.example.todoapp.database.ToDoDatabase
+import com.example.todoapp.locale
 import com.example.todoapp.repository.ToDoRepository
 import com.example.todoapp.utils.API_PREFERENCES
 //import com.example.todoapp.repository.ToDoRepository
@@ -23,5 +27,10 @@ class App: Application() {
         revisionSettings=getSharedPreferences(API_PREFERENCES, MODE_PRIVATE)
         toDoRepository = ToDoRepository(this, db, revisionSettings)
 
+        //ServiceLocator.register<Context>(this)
+        ServiceLocator.register(NetworkConnectionObserver(this))
+
     }
+
+
 }

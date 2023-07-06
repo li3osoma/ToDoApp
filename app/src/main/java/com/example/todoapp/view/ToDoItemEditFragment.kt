@@ -19,16 +19,13 @@ import com.example.todoapp.databinding.FragmentToDoItemEditBinding
 import com.example.todoapp.model.ToDoItem
 import com.example.todoapp.utils.DateUtils
 import com.example.todoapp.utils.StringUtils
-import com.example.todoapp.viewmodel.ToDoItemEditViewModel
+import com.example.todoapp.viewmodel.ToDoViewModel
 import com.example.todoapp.viewmodel.factory
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.datepicker.MaterialDatePicker.INPUT_MODE_CALENDAR
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import okhttp3.internal.wait
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -36,10 +33,10 @@ import java.util.*
 class ToDoItemEditFragment : Fragment() {
 
     lateinit var binding:FragmentToDoItemEditBinding
-    private val toDoItemEditViewModel: ToDoItemEditViewModel by viewModels {factory()}
+    private val toDoViewModel: ToDoViewModel by viewModels {factory()}
     private val args:ToDoItemEditFragmentArgs by navArgs()
     private var itemId:String=""
-    //private var toDoItem=toDoItemEditViewModel.createDefaultTask()
+    //private var toDoItem=toDoViewModel.createDefaultTask()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +49,7 @@ class ToDoItemEditFragment : Fragment() {
         Log.println(Log.INFO, "CHECK SET", "$id")
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
-                toDoItemEditViewModel.getTaskById(id)
+                toDoViewModel.getTaskById(id)
             }
         }
     }
@@ -87,7 +84,7 @@ class ToDoItemEditFragment : Fragment() {
     private fun setUpView(){
         if(itemId!=""){
 
-            val toDoItem=toDoItemEditViewModel._currentTask
+            val toDoItem=toDoViewModel.item.value
             Log.println(Log.INFO, "CHECK", "$toDoItem")
 
             binding.taskEditText.text= StringUtils.Editable(toDoItem!!.text)
@@ -137,9 +134,9 @@ class ToDoItemEditFragment : Fragment() {
     }
 
     private fun deleteItem(){
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            toDoItemEditViewModel.deleteTaskById(UUID.fromString(itemId))
-        }
+//        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+//            toDoViewModel.deleteTask(itemId)
+//        }
     }
 
     private fun setUpSaveButton(){
@@ -295,11 +292,11 @@ class ToDoItemEditFragment : Fragment() {
             val done=false
             val toDoItem=ToDoItem(UUID.randomUUID(), text, importance, deadline, done, "#000000", created_at, changed_at)
             viewLifecycleOwner.lifecycleScope.launch {
-                toDoItemEditViewModel.addTask(toDoItem)
+                toDoViewModel.addTaskDb(toDoItem)
             }
         }
         else{
-            var item:ToDoItem= toDoItemEditViewModel._currentTask
+            var item:ToDoItem= toDoViewModel.item.value
 
             val changed_at=Date().time
             item.text=text
@@ -308,7 +305,7 @@ class ToDoItemEditFragment : Fragment() {
             item.changed_at=changed_at
 
             viewLifecycleOwner.lifecycleScope.launch {
-                toDoItemEditViewModel.updateTask(item)
+                toDoViewModel.updateTaskDb(item)
             }
         }
     }
