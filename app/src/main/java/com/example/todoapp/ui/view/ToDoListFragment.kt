@@ -26,6 +26,8 @@ import com.example.todoapp.utils.*
 import com.example.todoapp.ui.viewmodel.ToDoViewModel
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -35,7 +37,7 @@ class ToDoListFragment : Fragment(){
     private lateinit var binding:FragmentToDoListBinding
     lateinit var adapter: ToDoListAdapter
     private val toDoViewModel: ToDoViewModel by viewModels {(requireContext().applicationContext as App).appComponent.viewModelFactory()}
-    private var internetState = ConnectionObserver.Status.Available
+    private var internetState = ConnectionObserver.Status.Unavailable
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,8 +58,14 @@ class ToDoListFragment : Fragment(){
 
         lifecycleScope.launch {
             toDoViewModel.list.collect{
+                Log.println(Log.INFO, "LIST", it.toString())
                 setAdapterItems(it)
                 setUpCompleteNum(it.count { it -> it.done }, it.size)
+            }
+        }
+        lifecycleScope.launch {
+            toDoViewModel.status.collectLatest{
+                updateStatusUI(it)
             }
         }
 
@@ -82,14 +90,7 @@ class ToDoListFragment : Fragment(){
                     ).show()
                 }
                 toDoViewModel.updateTaskDb(item)
-            }
-
-            override fun onTaskDelete(itemId: UUID) {
-                deleteTaskById(itemId)
-            }
-
-            override fun openActionMenu() {
-
+                toDoViewModel.loadList()
             }
         })
 
@@ -102,7 +103,7 @@ class ToDoListFragment : Fragment(){
     private fun setAdapterItems(list: List<ToDoItem>){
         if(toDoViewModel.modeVisibility) adapter.items=list.reversed()
         else adapter.items=list.filter { !it.done }.reversed()
-        Log.println(Log.DEBUG, "SET ADAPTER", list.map { it.done }.toList().reversed().toString())
+        Log.println(Log.DEBUG, "SET ADAPTER", list.reversed().toString())
     }
 
     private fun setUpFloatingButton(){
@@ -131,7 +132,7 @@ class ToDoListFragment : Fragment(){
     private fun setUpRefreshLayout(){
         binding.swipeToRefreshLayout.setOnRefreshListener {
             if (internetState == ConnectionObserver.Status.Available) {
-                toDoViewModel.getList()
+                toDoViewModel.loadList()
             } else {
                 Toast.makeText(
                     context,
@@ -177,20 +178,15 @@ class ToDoListFragment : Fragment(){
                 }
 
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                    val itemId = (viewHolder.itemView.tag as ToDoItem).id
-                    toDoViewModel.getTaskById(itemId)
+                    val item = (viewHolder.itemView.tag as ToDoItem)
                     when (direction) {
                         ItemTouchHelper.LEFT -> {
-                            val item = toDoViewModel.item
-                            val position = toDoViewModel.getPositionById(itemId)
-                            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                deleteTaskById(itemId)
-                                Toast.makeText(requireContext(), getString(R.string.delete_message),Toast.LENGTH_SHORT).show()
-                                //showRestoreItemSnackbar(item, position)
-                            }
+                            val position = toDoViewModel.getPositionById(item.id)
+                            deleteTask(item)
+                            //Toast.makeText(requireContext(), getString(R.string.delete_message),Toast.LENGTH_SHORT).show()
+                            //showRestoreItemSnackbar(item, position)
                         }
                         ItemTouchHelper.RIGHT -> {
-                            val item=viewHolder.itemView.tag as ToDoItem
                             item.done=!item.done
                             if (internetState == ConnectionObserver.Status.Available) {
                                 toDoViewModel.updateTaskApi(item)
@@ -202,6 +198,7 @@ class ToDoListFragment : Fragment(){
                                 ).show()
                             }
                             toDoViewModel.updateTaskDb(item)
+                            toDoViewModel.loadList()
                         }
                     }
                 }
@@ -211,7 +208,17 @@ class ToDoListFragment : Fragment(){
                 private fun showRestoreItemSnackbar(item: ToDoItem, position: Int) {
                     Snackbar.make(binding.recyclerView, "Task deleted", Snackbar.LENGTH_LONG)
                         .setAction("Undo") {
-                            //toDoListViewModel.restoreItem(item, position)
+                            if (internetState == ConnectionObserver.Status.Available) {
+                                toDoViewModel.restoreTask(item, position)
+                            } else {
+                                toDoViewModel.restoreTaskDb(item, position)
+                                Toast.makeText(
+                                    context,
+                                    "No internet connection, will upload with later. Continue offline.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            toDoViewModel.loadList()
                         }.show()
                 }
 
@@ -286,9 +293,22 @@ class ToDoListFragment : Fragment(){
 
     }
 
-    private fun deleteTaskById(id: UUID){
+//    private fun deleteTaskById(id: UUID){
+//        if (internetState == ConnectionObserver.Status.Available) {
+//            toDoViewModel.deleteTaskByIdApi(id)
+//        } else {
+//            Toast.makeText(
+//                context,
+//                "No internet connection, will upload with later. Continue offline.",
+//                Toast.LENGTH_SHORT
+//            ).show()
+//        }
+//        toDoViewModel.deleteTaskDb(id)
+//    }
+
+    private fun deleteTask(item: ToDoItem){
         if (internetState == ConnectionObserver.Status.Available) {
-            toDoViewModel.deleteTaskByIdApi(id)
+            toDoViewModel.deleteTaskByIdApi(item.id)
         } else {
             Toast.makeText(
                 context,
@@ -296,7 +316,48 @@ class ToDoListFragment : Fragment(){
                 Toast.LENGTH_SHORT
             ).show()
         }
-        toDoViewModel.deleteTaskDb(id)
+        toDoViewModel.deleteTaskDb(item)
+        toDoViewModel.loadList()
+    }
+
+    private fun updateStatusUI(status: ConnectionObserver.Status) {
+        when (status) {
+            ConnectionObserver.Status.Available -> {
+                if (internetState != status) {
+                    Toast.makeText(context, "Connected! Merging data...", Toast.LENGTH_SHORT)
+                        .show()
+                    toDoViewModel.loadList()
+                }
+
+            }
+
+            ConnectionObserver.Status.Unavailable -> {
+
+                if (internetState != status) {
+                    Toast.makeText(
+                        context,
+                        "Internet unavailable! Work offline",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    toDoViewModel.loadList()
+                }
+            }
+
+            ConnectionObserver.Status.Losing -> {
+
+                if (internetState != status) {
+                    Toast.makeText(context, "Losing Internet!", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            ConnectionObserver.Status.Lost -> {
+
+                if (internetState != status) {
+                    Toast.makeText(context, "Internet Lost!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        internetState = status
     }
 
 }

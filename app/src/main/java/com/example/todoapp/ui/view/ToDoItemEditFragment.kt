@@ -37,7 +37,7 @@ class ToDoItemEditFragment : Fragment() {
     private val toDoViewModel: ToDoViewModel by viewModels {(requireContext().applicationContext as App).appComponent.viewModelFactory()}
     private val args: ToDoItemEditFragmentArgs by navArgs()
     private var itemId:String=""
-    private var internetState = ConnectionObserver.Status.Available
+    //private var internetState = ConnectionObserver.Status.Available
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -134,8 +134,9 @@ class ToDoItemEditFragment : Fragment() {
     }
 
     private fun deleteItem(){
-        if (internetState == ConnectionObserver.Status.Available) {
-            toDoViewModel.deleteTaskByIdApi(UUID.fromString(itemId))
+        val item=toDoViewModel.item.value
+        if (toDoViewModel.status.value == ConnectionObserver.Status.Available) {
+            toDoViewModel.deleteTaskByIdApi(item.id)
         } else {
             Toast.makeText(
                 context,
@@ -143,7 +144,8 @@ class ToDoItemEditFragment : Fragment() {
                 Toast.LENGTH_SHORT
             ).show()
         }
-        toDoViewModel.deleteTaskDb(UUID.fromString(itemId))
+        toDoViewModel.deleteTaskDb(item)
+        toDoViewModel.loadList()
     }
 
     private fun setUpSaveButton(){
@@ -298,9 +300,20 @@ class ToDoItemEditFragment : Fragment() {
             val changed_at=created_at
             val done=false
             val toDoItem= ToDoItem(UUID.randomUUID(), text, importance, deadline, done, "#000000", created_at, changed_at)
-            viewLifecycleOwner.lifecycleScope.launch {
-                toDoViewModel.addTaskDb(toDoItem)
+//            viewLifecycleOwner.lifecycleScope.launch {
+//                toDoViewModel.addTaskDb(toDoItem)
+//            }
+            if(toDoViewModel.status.value==ConnectionObserver.Status.Available){
+                toDoViewModel.addTaskApi(toDoItem)
             }
+            else{
+                Toast.makeText(
+                    context,
+                    "No internet connection, will upload with later. Continue offline.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            toDoViewModel.addTaskDb(toDoItem)
         }
         else{
             var item: ToDoItem = toDoViewModel.item.value
@@ -311,10 +324,21 @@ class ToDoItemEditFragment : Fragment() {
             item.deadline=deadline
             item.changed_at=changed_at
 
-            viewLifecycleOwner.lifecycleScope.launch {
-                toDoViewModel.updateTaskDb(item)
+//            viewLifecycleOwner.lifecycleScope.launch {
+//                toDoViewModel.updateTaskDb(item)
+//            }
+            if (toDoViewModel.status.value == ConnectionObserver.Status.Available) {
+                toDoViewModel.updateTaskApi(item)
+            } else {
+                Toast.makeText(
+                    context,
+                    "No internet connection, will upload with later. Continue offline.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
+            toDoViewModel.updateTaskDb(item)
         }
+        toDoViewModel.loadList()
     }
 //
 

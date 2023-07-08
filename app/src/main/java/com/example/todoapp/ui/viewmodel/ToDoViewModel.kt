@@ -78,6 +78,7 @@ class ToDoViewModel @Inject constructor(
         job = viewModelScope.launch(Dispatchers.IO) {
             _list.emitAll(toDoRepositoryImpl.getListDb())
         }
+        Log.println(Log.INFO, "LOAD LIST", "")
     }
 
     fun getTaskById(id: UUID) {
@@ -101,9 +102,9 @@ class ToDoViewModel @Inject constructor(
         }
     }
 
-    fun deleteTaskDb(id: UUID) {
+    fun deleteTaskDb(item: ToDoItem) {
         viewModelScope.launch(Dispatchers.IO) {
-            toDoRepositoryImpl.deleteTaskByIdDb(id)
+            toDoRepositoryImpl.deleteTaskDb(item)
         }
     }
 
@@ -125,6 +126,7 @@ class ToDoViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             toDoRepositoryImpl.deleteTaskByIdApi(id)
         }
+        Log.println(Log.INFO, "DELETE API 0", id.toString())
     }
 
     fun updateTaskApi(item: ToDoItem) {
@@ -142,7 +144,7 @@ class ToDoViewModel @Inject constructor(
 
     fun getPositionById(id: UUID): Int {
         var ind = 0
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val toDoList = list.toList()[0]
             for (i in 0..toDoList.size) {
                 if (toDoList[i].id == id) {
@@ -152,5 +154,17 @@ class ToDoViewModel @Inject constructor(
             }
         }
         return ind
+    }
+
+  fun restoreTask(item: ToDoItem, position:Int){
+      viewModelScope.launch(Dispatchers.IO) {
+          toDoRepositoryImpl.restoreTask(item, position, list.toList()[0])
+      }
+  }
+
+    fun restoreTaskDb(item: ToDoItem, position:Int){
+        viewModelScope.launch(Dispatchers.IO) {
+            toDoRepositoryImpl.restoreTaskDb(item, position, list.toList()[0])
+        }
     }
 }

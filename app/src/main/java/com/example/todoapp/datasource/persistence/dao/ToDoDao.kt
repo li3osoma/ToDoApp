@@ -35,6 +35,9 @@ interface ToDoDao {
     suspend fun deleteTaskById(id: UUID)
 
     @Delete
+    suspend fun deleteTask(item: ToDoItem)
+
+    @Delete
     suspend fun deleteList(list: List<ToDoItem>)
 
 }

@@ -1,6 +1,8 @@
 package com.example.todoapp.datasource.repository
 
-import com.example.todoapp.datasource.network.api.RetrofitInstance
+import android.util.Log
+import androidx.lifecycle.asLiveData
+import com.example.todoapp.datasource.network.api.ToDoApi
 import com.example.todoapp.datasource.network.connection.Resource
 import com.example.todoapp.datasource.network.dto.TaskListRequest
 import com.example.todoapp.datasource.network.dto.TaskRequest
@@ -16,23 +18,24 @@ import javax.inject.Inject
 
 class ToDoRepositoryImpl @Inject constructor(
      private val todoDb: ToDoDatabase,
+     private val api:ToDoApi,
      private val sharedPreferencesHelper: SharedPreferencesHelper) : ToDoRepository {
+    private var currentList: MutableList<ToDoItem> = emptyList<ToDoItem>().toMutableList()
 
-    private var currentList:MutableList<ToDoItem> = emptyList<ToDoItem>().toMutableList()
-
-    var needToSynchronize=false
+    var needToSynchronize = false
 
     //COLLECTING REVISION
-    override fun updateRevision(r:Int){
+    override fun updateRevision(r: Int) {
         sharedPreferencesHelper.putRevision(r)
     }
-    override fun getRevision():Int=sharedPreferencesHelper.getRevision()
+
+    override fun getRevision(): Int = sharedPreferencesHelper.getRevision()
 
 
     //WORKING WITH DATABASE
     override fun getListDb(): Flow<List<ToDoItem>> = todoDb.dao().getListFlow()
 
-    override fun getTaskDb(id: UUID): ToDoItem =todoDb.dao().getTask(id)
+    override fun getTaskDb(id: UUID): ToDoItem = todoDb.dao().getTask(id)
 
     override suspend fun updateListDb(list: List<ToDoItem>) = todoDb.dao().updateList(list)
 
@@ -40,36 +43,38 @@ class ToDoRepositoryImpl @Inject constructor(
         todoDb.dao().deleteTaskById(id)
     }
 
-    override suspend fun addTaskDb(item: ToDoItem){
+    override suspend fun deleteTaskDb(item: ToDoItem) {
+        todoDb.dao().deleteTask(item)
+        Log.println(Log.INFO, "DELETE DB", item.text)
+    }
+
+    override suspend fun addTaskDb(item: ToDoItem) {
         todoDb.dao().addTask(item)
     }
 
-    override suspend fun updateTaskDb(item: ToDoItem){
+    override suspend fun updateTaskDb(item: ToDoItem) {
         todoDb.dao().updateTask(item)
     }
 
-    override suspend fun restoreItem(item: ToDoItem, position:Int){
-        loadList()
-        val list = currentList
-        list.add(position, item)
-        updateListApi(list)
+    override suspend fun restoreTaskDb(item: ToDoItem, position: Int, list: List<ToDoItem>) {
+        val currentList=list.toMutableList()
+        currentList.add(position, item)
+        updateListDb(currentList)
     }
 
-    override fun getPositionById(itemId: UUID):Int{
-        for(i in currentList.indices){
-            if(currentList[i].id==itemId)
-                return i
-        }
-        return -1
+    override suspend fun restoreTask(item: ToDoItem, position: Int, list: List<ToDoItem>) {
+        val currentList=list.toMutableList()
+        currentList.add(position, item)
+        updateListApi(currentList)
     }
-
 
     //WORKING WITH NETWORK
     override suspend fun loadList(): Resource<TaskListResponse> {
 
         try {
 
-            val response = RetrofitInstance.api.getList()
+//            val response = RetrofitInstance.api.getList()
+            val response = api.getList()
 
             if (response.isSuccessful) {
 
@@ -77,9 +82,10 @@ class ToDoRepositoryImpl @Inject constructor(
 
                 if (resultResponse != null) {
 
-                    val currentNetworkList=resultResponse.list.reversed()
-                    val currentDatabaseList=todoDb.dao().getList()
-                    val mergedList=HashMap<UUID, ToDoItem>()
+                    val currentNetworkList = resultResponse.list.reversed()
+                    Log.println(Log.INFO, "NETWORK LIST", resultResponse.list.toString())
+                    val currentDatabaseList = todoDb.dao().getList()
+                    val mergedList = HashMap<UUID, ToDoItem>()
 
                     for (item in currentDatabaseList) {
                         mergedList[item.id] = item
@@ -123,13 +129,15 @@ class ToDoRepositoryImpl @Inject constructor(
 
         return try {
 
-            val response = RetrofitInstance.api.updateList(getRevision(), TaskListRequest("ok", list))
+//            val response = RetrofitInstance.api.updateList(getRevision(), TaskListRequest("ok", list))
+            val response = api.updateList(getRevision(), TaskListRequest("ok", list))
 
             if (response.isSuccessful) {
 
                 val resultResponse = response.body()
                 if (resultResponse != null) {
 
+                    updateListDb(resultResponse.list)
                     updateRevision(resultResponse.revision)
                     Resource.Success(resultResponse)
 
@@ -152,46 +160,50 @@ class ToDoRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteTaskByIdApi(id: UUID): Resource<TaskResponse> {
-
-        return try {
-
-            val response = RetrofitInstance.api.deleteTask(getRevision(), id)
-
+    override suspend fun deleteTaskByIdApi(id: UUID) {
+        lateinit var res: Resource<TaskResponse>
+        //Log.println(Log.INFO, "DELETE API 1", getTaskDb(id).text.toString())
+        try {
+//            val response = RetrofitInstance.api.deleteTask(getRevision(), id)
+            Log.println(Log.INFO, "DELETE API 2", getRevision().toString())
+            val response = api.deleteTask(id, getRevision())
             if (response.isSuccessful) {
 
+                Log.println(Log.INFO, "DELETE API 3", getTaskDb(id).text.toString())
                 val resultResponse = response.body()
 
                 if (resultResponse != null) {
 
+                    Log.println(Log.INFO, "DELETE API 4", getTaskDb(id).text.toString())
                     updateRevision(resultResponse.revision)
-                    Resource.Success(resultResponse)
+                    res = Resource.Success(resultResponse)
 
                 } else {
 
-                    Resource.Error("Empty response body")
+                    res = Resource.Error("Empty response body")
 
                 }
 
             } else {
 
-                Resource.Error("Request failed with ${response.code()}: ${response.message()}")
+                res =
+                    Resource.Error("Request failed with ${response.code()}: ${response.message()}")
 
             }
 
         } catch (e: Exception) {
 
-            Resource.Error("An error occurred: ${e.localizedMessage ?: "Unknown error"}")
+            res = Resource.Error("An error occurred: ${e.localizedMessage ?: "Unknown error"}")
 
         }
-
     }
 
     override suspend fun addTaskApi(item: ToDoItem): Resource<TaskResponse> {
 
         return try {
 
-            val response = RetrofitInstance.api.addTask(getRevision(), TaskRequest("ok", item))
+//            val response = RetrofitInstance.api.addTask(getRevision(), TaskRequest("ok", item))
+            val response = api.addTask(getRevision(), TaskRequest("ok", item))
 
             if (response.isSuccessful) {
 
@@ -221,37 +233,73 @@ class ToDoRepositoryImpl @Inject constructor(
 
     }
 
-    override suspend fun updateTaskApi(id: UUID, item: ToDoItem): Resource<TaskResponse> {
+    override suspend fun updateTaskApi(id: UUID, item: ToDoItem){
 
-        return try {
+//        return try {
+//
+////            val response = RetrofitInstance.api.updateTask(getRevision(), id, TaskRequest("ok", item))
+//            val response = api.updateTask(getRevision(), id, TaskRequest("ok", item))
+//
+//            if (response.isSuccessful) {
+//
+//                val resultResponse = response.body()
+//
+//                if (resultResponse != null) {
+//                    updateRevision(resultResponse.revision)
+//                    Resource.Success(resultResponse)
+//
+//                } else {
+//
+//                    Resource.Error("Empty response body")
+//
+//                }
+//
+//            } else {
+//
+//                Resource.Error("Request failed with ${response.code()}: ${response.message()}")
+//
+//            }
+//
+//        } catch (e: Exception) {
+//
+//            Resource.Error("An error occurred: ${e.localizedMessage ?: "Unknown error"}")
+//
+//        }
 
-            val response = RetrofitInstance.api.updateTask(getRevision(), id, TaskRequest("ok", item))
-
+//    }
+        lateinit var res: Resource<TaskResponse>
+        //Log.println(Log.INFO, "DELETE API 1", getTaskDb(id).text.toString())
+        try {
+//            val response = RetrofitInstance.api.deleteTask(getRevision(), id)
+            Log.println(Log.INFO, "DELETE API 2", getRevision().toString())
+            val response = api.updateTask(id, getRevision(),TaskRequest("ok",item))
             if (response.isSuccessful) {
 
                 val resultResponse = response.body()
 
                 if (resultResponse != null) {
+
                     updateRevision(resultResponse.revision)
-                    Resource.Success(resultResponse)
+                    res = Resource.Success(resultResponse)
 
                 } else {
 
-                    Resource.Error("Empty response body")
+                    res = Resource.Error("Empty response body")
 
                 }
 
             } else {
 
-                Resource.Error("Request failed with ${response.code()}: ${response.message()}")
+                res =
+                    Resource.Error("Request failed with ${response.code()}: ${response.message()}")
 
             }
 
         } catch (e: Exception) {
-
-            Resource.Error("An error occurred: ${e.localizedMessage ?: "Unknown error"}")
+            Log.println(Log.INFO, "AAAAAAAA", getRevision().toString())
+            res = Resource.Error("An error occurred: ${e.localizedMessage ?: "Unknown error"}")
 
         }
-
     }
+
 }

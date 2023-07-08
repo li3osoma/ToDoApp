@@ -26,13 +26,16 @@ interface ToDoRepository{
 
     suspend fun deleteTaskByIdDb(id: UUID)
 
+    suspend fun deleteTaskDb(item: ToDoItem)
+
     suspend fun addTaskDb(item: ToDoItem)
 
     suspend fun updateTaskDb(item: ToDoItem)
 
-    suspend fun restoreItem(item: ToDoItem, position:Int)
+    suspend fun restoreTaskDb(item: ToDoItem, position:Int, list: List<ToDoItem>)
 
-    fun getPositionById(itemId:UUID):Int
+    suspend fun restoreTask(item: ToDoItem, position:Int, list: List<ToDoItem>)
+
 
 
     //WORKING WITH NETWORK
@@ -40,10 +43,10 @@ interface ToDoRepository{
 
     suspend fun updateListApi(list: List<ToDoItem>): Resource<TaskListResponse>
 
-    suspend fun deleteTaskByIdApi(id: UUID): Resource<TaskResponse>
+    suspend fun deleteTaskByIdApi(id: UUID)
 
     suspend fun addTaskApi(item: ToDoItem): Resource<TaskResponse>
 
-    suspend fun updateTaskApi(id: UUID, item: ToDoItem): Resource<TaskResponse>
+    suspend fun updateTaskApi(id: UUID, item: ToDoItem)
 
 }

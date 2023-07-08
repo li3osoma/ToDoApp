@@ -36,16 +36,16 @@ interface ToDoApi {
     @PUT("list/{id}")
     @Headers("Authorization: Bearer $TOKEN")
     suspend fun updateTask(
-        @Header("X-Last-Known-Revision") lastKnownRevision: Int,
         @Path("id") itemId: UUID,
+        @Header("X-Last-Known-Revision") lastKnownRevision: Int,
         @Body taskRequest: TaskRequest
     ): Response<TaskResponse>
 
     @DELETE("list/{id}")
     @Headers("Authorization: Bearer $TOKEN")
     suspend fun deleteTask(
-        @Header("X-Last-Known-Revision") lastKnownRevision: Int,
         @Path("id") itemId: UUID,
+        @Header("X-Last-Known-Revision") lastKnownRevision: Int
     ): Response<TaskResponse>
 
 }

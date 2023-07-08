@@ -21,8 +21,6 @@ import java.util.UUID
 interface TaskActionListener{
     fun onTaskDetails(itemId:UUID)
     fun onTaskChangeComplete(item: ToDoItem)
-    fun onTaskDelete(itemId: UUID)
-    fun openActionMenu()
 }
 
 class ToDoListDiffUtilCallback(
