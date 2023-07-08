@@ -100,7 +100,6 @@ class ToDoListAdapter(
         }
 
         holder.binding.checkbox.setOnClickListener {
-            val itemId:UUID=(it.tag as ToDoItem).id
             taskActionListener.onTaskChangeComplete(items[position])
         }
 

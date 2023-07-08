@@ -29,7 +29,6 @@ class MainActivity : AppCompatActivity(){
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-
         val myWorkRequest = PeriodicWorkRequest.Builder(
             UpdateWorker::class.java,
             8,

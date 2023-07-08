@@ -8,6 +8,11 @@ import com.example.todoapp.utils.API_PREFERENCES
 import com.example.todoapp.utils.KEY
 import javax.inject.Inject
 
+/*
+
+Handling API revision
+
+ */
 class SharedPreferencesHelper @Inject constructor(context: Context) {
     private val sharedPreferences =
         context.getSharedPreferences(API_PREFERENCES, Context.MODE_PRIVATE)

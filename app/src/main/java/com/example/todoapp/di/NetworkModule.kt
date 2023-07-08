@@ -25,7 +25,6 @@ class NetworkModule {
     @Provides
     @Singleton
     fun provideRetrofitClient(): Retrofit {
-        //System.setProperty("http.keepAlive", "false")
         return Retrofit.Builder()
             .client(provideHttpClient())
             .baseUrl(BASE_URL)

@@ -24,6 +24,11 @@ import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
+/*
+
+ViewModel
+
+ */
 class ToDoViewModel @Inject constructor(
     private val application: Application,
     private val toDoRepositoryImpl: ToDoRepositoryImpl,

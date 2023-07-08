@@ -4,13 +4,20 @@ import android.content.Context
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.example.todoapp.datasource.repository.ToDoRepositoryImpl
-import com.example.todoapp.utils.localeLazy
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
+
+/*
+
+Periodic update manager description
+
+ */
 
 class UpdateWorker(context: Context, params: WorkerParameters)
     : Worker(context, params) {
 
-    private val repository: ToDoRepositoryImpl by localeLazy()
+    @Inject
+    lateinit var repository: ToDoRepositoryImpl
     override fun doWork(): Result {
         return when (syncData()) {
             is Resource.Success -> Result.success()
@@ -19,7 +26,6 @@ class UpdateWorker(context: Context, params: WorkerParameters)
             }
         }
     }
-
     private fun syncData() = runBlocking {
         return@runBlocking repository.loadList()
     }

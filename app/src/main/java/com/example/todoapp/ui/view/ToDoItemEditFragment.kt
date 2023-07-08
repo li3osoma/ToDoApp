@@ -37,7 +37,6 @@ class ToDoItemEditFragment : Fragment() {
     private val toDoViewModel: ToDoViewModel by viewModels {(requireContext().applicationContext as App).appComponent.viewModelFactory()}
     private val args: ToDoItemEditFragmentArgs by navArgs()
     private var itemId:String=""
-    //private var internetState = ConnectionObserver.Status.Available
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +45,6 @@ class ToDoItemEditFragment : Fragment() {
     }
 
     private fun setTaskById(id: UUID) {
-        Log.println(Log.INFO, "CHECK SET", "$id")
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 toDoViewModel.getTaskById(id)
@@ -85,9 +83,8 @@ class ToDoItemEditFragment : Fragment() {
         if(itemId!=""){
 
             val toDoItem=toDoViewModel.item.value
-            Log.println(Log.INFO, "CHECK", "$toDoItem")
 
-            binding.taskEditText.text= StringUtils.Editable(toDoItem!!.text)
+            binding.taskEditText.text= StringUtils.Editable(toDoItem.text)
 
             setImportance(toDoItem.importance.toString())
 
@@ -122,12 +119,10 @@ class ToDoItemEditFragment : Fragment() {
             binding.deleteTextView.setTextColor(resources.getColor(R.color.black))
             binding.deleteIcon.setOnClickListener {
                 deleteItem()
-                Toast.makeText(requireContext(), getString(R.string.delete_message),Toast.LENGTH_SHORT).show()
                 openListFragment()
             }
             binding.deleteTextView.setOnClickListener {
                 deleteItem()
-                Toast.makeText(requireContext(), getString(R.string.delete_message),Toast.LENGTH_SHORT).show()
                 openListFragment()
             }
         }
@@ -137,12 +132,9 @@ class ToDoItemEditFragment : Fragment() {
         val item=toDoViewModel.item.value
         if (toDoViewModel.status.value == ConnectionObserver.Status.Available) {
             toDoViewModel.deleteTaskByIdApi(item.id)
+            Toast.makeText(requireContext(), getString(R.string.delete_message),Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(
-                context,
-                "No internet connection, will upload with later. Continue offline.",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(context, getString(R.string.no_connection_message), Toast.LENGTH_LONG).show()
         }
         toDoViewModel.deleteTaskDb(item)
         toDoViewModel.loadList()
@@ -155,10 +147,6 @@ class ToDoItemEditFragment : Fragment() {
             }
             else{
                 saveItem()
-                if(itemId=="")
-                    Toast.makeText(requireContext(), getString(R.string.save_message), Toast.LENGTH_SHORT).show()
-                else
-                    Toast.makeText(requireContext(), getString(R.string.edit_message), Toast.LENGTH_SHORT).show()
                 openListFragment()
             }
         }
@@ -208,7 +196,7 @@ class ToDoItemEditFragment : Fragment() {
             when (it.itemId) {
                 R.id.lowImportance -> {
                     setImportance(it.title.toString())
-                    Toast.makeText(requireContext(), "${it.title} ${getString(R.string.importance_message)}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "${it.title}${getString(R.string.importance_message)}", Toast.LENGTH_SHORT).show()
                 }
                 R.id.highImportance -> {
                     setImportance(it.title.toString())
@@ -300,18 +288,13 @@ class ToDoItemEditFragment : Fragment() {
             val changed_at=created_at
             val done=false
             val toDoItem= ToDoItem(UUID.randomUUID(), text, importance, deadline, done, "#000000", created_at, changed_at)
-//            viewLifecycleOwner.lifecycleScope.launch {
-//                toDoViewModel.addTaskDb(toDoItem)
-//            }
+
             if(toDoViewModel.status.value==ConnectionObserver.Status.Available){
                 toDoViewModel.addTaskApi(toDoItem)
+                Toast.makeText(requireContext(), getString(R.string.save_message), Toast.LENGTH_SHORT).show()
             }
             else{
-                Toast.makeText(
-                    context,
-                    "No internet connection, will upload with later. Continue offline.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context, getString(R.string.no_connection_message), Toast.LENGTH_LONG).show()
             }
             toDoViewModel.addTaskDb(toDoItem)
         }
@@ -324,17 +307,11 @@ class ToDoItemEditFragment : Fragment() {
             item.deadline=deadline
             item.changed_at=changed_at
 
-//            viewLifecycleOwner.lifecycleScope.launch {
-//                toDoViewModel.updateTaskDb(item)
-//            }
             if (toDoViewModel.status.value == ConnectionObserver.Status.Available) {
                 toDoViewModel.updateTaskApi(item)
+                Toast.makeText(requireContext(), getString(R.string.edit_message), Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(
-                    context,
-                    "No internet connection, will upload with later. Continue offline.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context, getString(R.string.no_connection_message), Toast.LENGTH_LONG).show()
             }
             toDoViewModel.updateTaskDb(item)
         }

@@ -16,19 +16,21 @@ import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 import javax.inject.Inject
 
+/*
+
+Work with remote and local data sources
+
+ */
 class ToDoRepositoryImpl @Inject constructor(
      private val todoDb: ToDoDatabase,
      private val api:ToDoApi,
      private val sharedPreferencesHelper: SharedPreferencesHelper) : ToDoRepository {
-    private var currentList: MutableList<ToDoItem> = emptyList<ToDoItem>().toMutableList()
 
-    var needToSynchronize = false
 
     //COLLECTING REVISION
     override fun updateRevision(r: Int) {
         sharedPreferencesHelper.putRevision(r)
     }
-
     override fun getRevision(): Int = sharedPreferencesHelper.getRevision()
 
 
@@ -72,8 +74,6 @@ class ToDoRepositoryImpl @Inject constructor(
     override suspend fun loadList(): Resource<TaskListResponse> {
 
         try {
-
-//            val response = RetrofitInstance.api.getList()
             val response = api.getList()
 
             if (response.isSuccessful) {
@@ -128,8 +128,6 @@ class ToDoRepositoryImpl @Inject constructor(
     override suspend fun updateListApi(list: List<ToDoItem>): Resource<TaskListResponse> {
 
         return try {
-
-//            val response = RetrofitInstance.api.updateList(getRevision(), TaskListRequest("ok", list))
             val response = api.updateList(getRevision(), TaskListRequest("ok", list))
 
             if (response.isSuccessful) {
@@ -164,7 +162,6 @@ class ToDoRepositoryImpl @Inject constructor(
         lateinit var res: Resource<TaskResponse>
         //Log.println(Log.INFO, "DELETE API 1", getTaskDb(id).text.toString())
         try {
-//            val response = RetrofitInstance.api.deleteTask(getRevision(), id)
             Log.println(Log.INFO, "DELETE API 2", getRevision().toString())
             val response = api.deleteTask(id, getRevision())
             if (response.isSuccessful) {
@@ -194,15 +191,12 @@ class ToDoRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
 
             res = Resource.Error("An error occurred: ${e.localizedMessage ?: "Unknown error"}")
-
         }
     }
 
     override suspend fun addTaskApi(item: ToDoItem): Resource<TaskResponse> {
 
         return try {
-
-//            val response = RetrofitInstance.api.addTask(getRevision(), TaskRequest("ok", item))
             val response = api.addTask(getRevision(), TaskRequest("ok", item))
 
             if (response.isSuccessful) {
@@ -234,43 +228,7 @@ class ToDoRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateTaskApi(id: UUID, item: ToDoItem){
-
-//        return try {
-//
-////            val response = RetrofitInstance.api.updateTask(getRevision(), id, TaskRequest("ok", item))
-//            val response = api.updateTask(getRevision(), id, TaskRequest("ok", item))
-//
-//            if (response.isSuccessful) {
-//
-//                val resultResponse = response.body()
-//
-//                if (resultResponse != null) {
-//                    updateRevision(resultResponse.revision)
-//                    Resource.Success(resultResponse)
-//
-//                } else {
-//
-//                    Resource.Error("Empty response body")
-//
-//                }
-//
-//            } else {
-//
-//                Resource.Error("Request failed with ${response.code()}: ${response.message()}")
-//
-//            }
-//
-//        } catch (e: Exception) {
-//
-//            Resource.Error("An error occurred: ${e.localizedMessage ?: "Unknown error"}")
-//
-//        }
-
-//    }
-        lateinit var res: Resource<TaskResponse>
-        //Log.println(Log.INFO, "DELETE API 1", getTaskDb(id).text.toString())
         try {
-//            val response = RetrofitInstance.api.deleteTask(getRevision(), id)
             Log.println(Log.INFO, "DELETE API 2", getRevision().toString())
             val response = api.updateTask(id, getRevision(),TaskRequest("ok",item))
             if (response.isSuccessful) {
@@ -280,24 +238,23 @@ class ToDoRepositoryImpl @Inject constructor(
                 if (resultResponse != null) {
 
                     updateRevision(resultResponse.revision)
-                    res = Resource.Success(resultResponse)
+                    Resource.Success(resultResponse)
 
                 } else {
 
-                    res = Resource.Error("Empty response body")
+                    Resource.Error("Empty response body")
 
                 }
 
             } else {
 
-                res =
-                    Resource.Error("Request failed with ${response.code()}: ${response.message()}")
+                Resource.Error("Request failed with ${response.code()}: ${response.message()}")
 
             }
 
         } catch (e: Exception) {
             Log.println(Log.INFO, "AAAAAAAA", getRevision().toString())
-            res = Resource.Error("An error occurred: ${e.localizedMessage ?: "Unknown error"}")
+            Resource.Error("An error occurred: ${e.localizedMessage ?: "Unknown error"}")
 
         }
     }

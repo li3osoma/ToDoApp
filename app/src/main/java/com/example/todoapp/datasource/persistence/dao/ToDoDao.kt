@@ -11,6 +11,11 @@ import com.example.todoapp.utils.DATABASE_NAME
 import kotlinx.coroutines.flow.Flow
 import java.util.*
 
+/*
+
+Database access methods
+
+ */
 @Dao
 interface ToDoDao {
     @Query("SELECT * FROM $DATABASE_NAME")

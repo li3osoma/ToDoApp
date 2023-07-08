@@ -9,6 +9,11 @@ import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 import java.util.UUID
 
+/*
+
+Model, entity
+
+ */
 @Entity(tableName = DATABASE_NAME)
 data class ToDoItem(
     @PrimaryKey

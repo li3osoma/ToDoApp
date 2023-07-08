@@ -7,7 +7,11 @@ import com.example.todoapp.datasource.network.connection.Resource
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
-typealias TaskListener = (items:List<ToDoItem>) -> Unit
+/*
+
+Remote and local data sources methods description
+
+ */
 
 interface ToDoRepository{
 

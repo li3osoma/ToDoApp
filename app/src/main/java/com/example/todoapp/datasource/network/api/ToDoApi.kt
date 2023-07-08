@@ -9,6 +9,11 @@ import retrofit2.Response
 import retrofit2.http.*
 import java.util.UUID
 
+/*
+
+API methods
+
+ */
 interface ToDoApi {
 
     @GET("list")

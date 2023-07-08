@@ -10,6 +10,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/*
+
+Update network connection state
+
+ */
 class NetworkConnectionObserver @Inject constructor(
     context: Context
 ) : ConnectionObserver {

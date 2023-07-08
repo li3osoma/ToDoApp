@@ -3,6 +3,11 @@ package com.example.todoapp.datasource.persistence
 import androidx.room.TypeConverter
 import java.util.UUID
 
+/*
+
+Converts ID
+
+ */
 class UUIDConverter {
     @TypeConverter
     fun fromUUID(uuid: UUID): String {

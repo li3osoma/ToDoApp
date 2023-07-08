@@ -1,5 +1,10 @@
 package com.example.todoapp.datasource.network.connection
 
+/*
+
+Kinds of request results
+
+ */
 sealed class Resource<T>(
     val data: T? = null,
     val message: String? = null

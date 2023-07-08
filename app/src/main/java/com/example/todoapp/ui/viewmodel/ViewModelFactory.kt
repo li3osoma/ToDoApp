@@ -8,6 +8,11 @@ import com.example.todoapp.datasource.network.connection.NetworkConnectionObserv
 import com.example.todoapp.datasource.repository.ToDoRepositoryImpl
 import javax.inject.Inject
 
+/*
+
+ViewModel factory
+
+ */
 class ViewModelFactory @Inject constructor(
     private val application: Application,
     private val toDoRepositoryImpl: ToDoRepositoryImpl,

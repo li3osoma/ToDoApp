@@ -3,22 +3,36 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="add_button_description">Add Todo-item</string>
 
-    <string name="delete_message">Task is deleted</string>
-    <string name="empty_task_message">Empty task</string>
-    <string name="save_message">Task saved</string>
-    <string name="edit_message">Changes saved</string>
-    <string name="importance_message">importance set</string>
+    //UI elements text
     <string name="ok_button_text">Ok</string>
     <string name="cancel_button_text">Cancel</string>
     <string name="select_date_title">Select date</string>
-    <string name="deadline_message">Deadline set</string>
     <string name="done_title_text">Done: </string>
     <string name="open_menu_item_text">Open</string>
+
+    //Importance
     <string name="high_importance_menu_item_text">important</string>
     <string name="low_importance_menu_item_text">low</string>
     <string name="no_importance_menu_item_text">basic</string>
-    <string name="non_existed_task_message">Non-existed task cannot be deleted</string>
+
+    //Action notification
+    <string name="delete_message">Task deleted</string>
+    <string name="empty_task_message">Empty task</string>
+    <string name="save_message">Task saved</string>
+    <string name="edit_message">Changes saved</string>
+    <string name="deadline_message">Deadline set</string>
+    <string name="importance_message">-importance task</string>
+    <string name="non_existed_task_message">Cannot delete non-existed task</string>
+    <string name="complete_message">Complete</string>
+    <string name="incomplete_message">Incomplete</string>
+
+    //Internet connection notification
+    <string name="connected_message">Connected. Synchronizing…</string>
+    <string name="no_connection_message">No internet connection. Will upload later. Continue offline</string>
+    <string name="updated_message">Uploaded</string>
+    <string name="weak_connection_message">Weak internet connection</string>
 
     <string name="database_name">todo_database</string>
+
 
 </resources>
