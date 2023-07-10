@@ -9,7 +9,7 @@ import javax.inject.Singleton
 @Module
 class SharedPreferencesHelperModule {
     @Provides
-    @Singleton
+    @AppScope
     fun provideSharedPreferences(context: Context): SharedPreferencesHelper =
         SharedPreferencesHelper(context)
 }

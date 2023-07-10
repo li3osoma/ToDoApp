@@ -13,14 +13,14 @@ class AppModule(
     private val context: Context
 ) {
     @Provides
-    @Singleton
+    @AppScope
     fun provideContext(): Context = context
 
     @Provides
-    @Singleton
+    @AppScope
     fun provideScope() = CoroutineScope(SupervisorJob())
 
     @Provides
-    @Singleton
+    @AppScope
     fun provideApplication(): Application = (context.applicationContext as Application)
 }

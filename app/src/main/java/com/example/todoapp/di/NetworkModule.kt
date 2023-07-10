@@ -18,12 +18,12 @@ import javax.inject.Singleton
 @Module
 class NetworkModule {
     @Provides
-    @Singleton
+    @AppScope
     fun provideApi(): ToDoApi =
         provideRetrofitClient().create(ToDoApi::class.java)
 
     @Provides
-    @Singleton
+    @AppScope
     fun provideRetrofitClient(): Retrofit {
         return Retrofit.Builder()
             .client(provideHttpClient())
@@ -34,7 +34,7 @@ class NetworkModule {
 
 
     @Provides
-    @Singleton
+    @AppScope
     fun provideHttpClient(): OkHttpClient =
         OkHttpClient.Builder().addInterceptor { chain ->
             val newRequest: Request = chain.request().newBuilder()
@@ -44,12 +44,13 @@ class NetworkModule {
         }.addInterceptor(getInterceptor()).build()
 
     @Provides
+    @AppScope
     fun getInterceptor(): Interceptor {
         return AuthorizationInterceptor()
     }
 
     @Provides
-    @Singleton
+    @AppScope
     fun provideConnectionObserver(context: Context): NetworkConnectionObserver =
         NetworkConnectionObserver(context)
 }

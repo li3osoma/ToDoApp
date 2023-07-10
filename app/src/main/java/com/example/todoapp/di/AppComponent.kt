@@ -7,7 +7,7 @@ import com.example.todoapp.ui.viewmodel.ViewModelFactory
 import dagger.Component
 import javax.inject.Singleton
 
-@Singleton
+@AppScope
 @Component(dependencies = [], modules = [DatabaseModule::class, NetworkModule::class,
     RepositoryModule::class, SharedPreferencesHelperModule::class, AppModule::class])
 interface AppComponent {

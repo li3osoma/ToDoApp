@@ -8,7 +8,7 @@ import javax.inject.Singleton
 
 @Module
 interface RepositoryModule {
-    @Singleton
+    @AppScope
     @Binds
     fun bindTodoRepository(repositoryImpl: ToDoRepositoryImpl): ToDoRepository
 }

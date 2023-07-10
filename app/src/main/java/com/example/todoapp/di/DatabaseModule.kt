@@ -12,7 +12,7 @@ import javax.inject.Singleton
 @Module
 class DatabaseModule {
     @Provides
-    @Singleton
+    @AppScope
     fun provideDatabase(context: Context) = Room.databaseBuilder(
         context,
         ToDoDatabase::class.java,
@@ -20,6 +20,6 @@ class DatabaseModule {
     ).fallbackToDestructiveMigration().build()
 
     @Provides
-    @Singleton
+    @AppScope
     fun provideTaskDao(database: ToDoDatabase): ToDoDao = database.dao()
 }
