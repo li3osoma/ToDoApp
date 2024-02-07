@@ -59,7 +59,6 @@ class ToDoViewModel @Inject constructor(
         )
     }
 
-
     init {
         observeNetwork()
         getList()
@@ -81,7 +80,7 @@ class ToDoViewModel @Inject constructor(
 
     fun getList() {
         job = viewModelScope.launch(Dispatchers.IO) {
-            _list.emitAll(toDoRepositoryImpl.getListDb())
+            _list.emitAll(toDoRepositoryImpl.getListDbFlow())
         }
         Log.println(Log.INFO, "LOAD LIST", "")
     }

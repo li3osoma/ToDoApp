@@ -1,7 +1,6 @@
 package com.example.todoapp.datasource.repository
 
 import android.util.Log
-import androidx.lifecycle.asLiveData
 import com.example.todoapp.datasource.network.api.ToDoApi
 import com.example.todoapp.datasource.network.connection.Resource
 import com.example.todoapp.datasource.network.dto.TaskListRequest
@@ -24,7 +23,8 @@ Work with remote and local data sources
 class ToDoRepositoryImpl @Inject constructor(
      private val todoDb: ToDoDatabase,
      private val api:ToDoApi,
-     private val sharedPreferencesHelper: SharedPreferencesHelper) : ToDoRepository {
+     private val sharedPreferencesHelper: SharedPreferencesHelper
+) : ToDoRepository {
 
 
     //COLLECTING REVISION
@@ -35,7 +35,8 @@ class ToDoRepositoryImpl @Inject constructor(
 
 
     //WORKING WITH DATABASE
-    override fun getListDb(): Flow<List<ToDoItem>> = todoDb.dao().getListFlow()
+    override fun getListDbFlow(): Flow<List<ToDoItem>> = todoDb.dao().getListFlow()
+    override fun getListDb(): List<ToDoItem> = todoDb.dao().getList()
 
     override fun getTaskDb(id: UUID): ToDoItem = todoDb.dao().getTask(id)
 

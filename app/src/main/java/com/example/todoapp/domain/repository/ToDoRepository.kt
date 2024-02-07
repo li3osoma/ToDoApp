@@ -22,7 +22,9 @@ interface ToDoRepository{
 
 
     //WORKING WITH DATABASE
-    fun getListDb(): Flow<List<ToDoItem>>
+    fun getListDbFlow(): Flow<List<ToDoItem>>
+
+    fun getListDb():List<ToDoItem>
 
     fun getTaskDb(id: UUID): ToDoItem
 

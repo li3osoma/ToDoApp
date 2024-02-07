@@ -38,5 +38,7 @@ class DateUtils {
             return dateToString(Date())
         }
 
+        fun getCurrentDateLong() = dateToLong(Date())
+
     }
 }
